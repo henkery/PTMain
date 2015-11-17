@@ -2,12 +2,12 @@
 #include <pthread.h>
 #include "sensors.h"
 
-pthread_t threadSensor;
-pthread_t threadMotor;
+pthread_t th_sensor;
+pthread_t th_motor;
 
 int main(int argc, char const *argv[])
 {
-	sensorRun(&threadSensor);
+	sns_sensor_run(&th_sensor);
 	while (1) {
 
 	}
