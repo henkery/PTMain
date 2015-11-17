@@ -4,9 +4,10 @@
 
 int run;
 
-void *sensorLoop(void* run)
+void *sensorLoop(void* voidedRun)
 {
-	while (1) {
+	int *run = (int *)voidedRun;
+	while (run) {
 
 	}
 	return 0;
