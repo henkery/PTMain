@@ -1,16 +1,19 @@
 //This is the sensors module of the PT control system.
+#include <pthread.h>
+#include "sensors.h"
 
-int sensorLoop(int* run)
+int run;
+
+void *sensorLoop(void* run)
 {
-	if (!initialize()) {
-		return 1;
-	}
-	while (*run) {
+	while (1) {
 
 	}
 	return 0;
 }
 
-int initialize() {
+int sensorRun(pthread_t *thread) {
+	run = 1;
+	pthread_create(thread, NULL, sensorLoop, &run);
 	return 0;
 }
