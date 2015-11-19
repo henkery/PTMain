@@ -8,6 +8,14 @@ int run;
 void *sns_sensor_loop(void* vd_data)
 {
 	mn_core_data *data = (mn_core_data *)vd_data;
+	int file;
+	char *filename = "/dev/i2c-1";
+	if ((file = open(filename, O_RDWR)) < 0) {
+	    /* ERROR HANDLING: you can check errno to see what went wrong */
+	    perror("Failed to open the i2c bus");
+	    return -1;
+	}
+
 	while (data->run) {
 
 	}
