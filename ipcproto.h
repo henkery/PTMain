@@ -7,6 +7,7 @@ IPC protocol definiton for the the PTMain system and the QT touchscreen applicat
 #define PT_HANDSHAKE 0
 #define PT_REQUEST_BATTERY_INFO 1
 #define PT_REQUEST_SPEED 2
+#define PT_REQUEST_ALL 3
 
 #define PT_ACK 10
 #define PT_NACK 11
