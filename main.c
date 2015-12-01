@@ -33,38 +33,6 @@ int main(int argc, char const *argv[])
 
 	char connected = 0;
 	while (data.run) {
-		if ( (cl = accept(sock, NULL, NULL)) == -1) { //wait for connections, fail on broken connection
-			perror("accept error");
-			cl = 0;
-			continue;
-		}
-		else {
-			char buf = 1;
-			int n;
-			n = read(cl, &buf, 1); //read first byte
-			if (n < 0) {
-				close(cl); //failed read, drop connection
-				cl = 0;
-				continue;
-			}
-			if (buf == PT_HANDSHAKE)
-			{
-				buf = PT_ACK;
-				n = write(cl, &buf, 1);
-				if (n < 0) {
-					close(cl); //failed write, drop connection
-					cl = 0;
-					continue;
-				}
-				else
-					connected = 1;
-			}
-			else {
-				close(cl); //first byte was not a handshake, drop connection
-				cl = 0;
-				continue;
-			}
-		}
 		if (connected) {
 			char buf;
 			int n;
@@ -106,5 +74,40 @@ int main(int argc, char const *argv[])
 			}
 
 		}
-		return 0;
+		else
+		{
+			if ( (cl = accept(sock, NULL, NULL)) == -1) { //wait for connections, fail on broken connection
+				perror("accept error");
+				cl = 0;
+				continue;
+			}
+			else {
+				char buf = 1;
+				int n;
+			n = read(cl, &buf, 1); //read first byte
+			if (n < 0) {
+				close(cl); //failed read, drop connection
+				cl = 0;
+				continue;
+			}
+			if (buf == PT_HANDSHAKE)
+			{
+				buf = PT_ACK;
+				n = write(cl, &buf, 1);
+				if (n < 0) {
+					close(cl); //failed write, drop connection
+					cl = 0;
+					continue;
+				}
+				else
+					connected = 1;
+			}
+			else {
+				close(cl); //first byte was not a handshake, drop connection
+				cl = 0;
+				continue;
+			}
+		}
 	}
+	return 0;
+}
