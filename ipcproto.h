@@ -1,6 +1,11 @@
 /* 
 IPC protocol definiton for the the PTMain system and the QT touchscreen application
 */
+/*
+Data transmission
+first 4 bytes BATT data
+next 4 bytes SPEED data
+*/
 #ifndef IPCPROTO_H
 #define IPCPROTO_H
 

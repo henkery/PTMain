@@ -5,6 +5,9 @@
 #include "header.h"
 #include "sensors.h"
 #include "motors.h"
+#include "ipcproto.h"
+#include <unistd.h>
+#include <string.h>
 
 pthread_t th_sensor;
 pthread_t th_motor;
@@ -21,20 +24,87 @@ int main(int argc, char const *argv[])
 	bind(sock, (struct sockaddr*)&addr, sizeof(addr)); //bind
 	data.run = 1; // Set all threads to run
 	if (listen(sock, 5) == -1) { //listen to connections on the socket, exit if fails
-	    return -1;
+		return -1;
 	}
 
 
 	sns_sensor_run(&th_sensor, &data); //start other threads
 	mtr_motor_run(&th_motor, &data);
 
-
+	char connected = 0;
 	while (data.run) {
 		if ( (cl = accept(sock, NULL, NULL)) == -1) { //wait for connections, fail on broken connection
-	      perror("accept error");
-	      continue;
-	    }
+			perror("accept error");
+			cl = 0;
+			continue;
+		}
+		else {
+			char buf = 1;
+			int n;
+			n = read(cl, &buf, 1); //read first byte
+			if (n < 0) {
+				close(cl); //failed read, drop connection
+				cl = 0;
+				continue;
+			}
+			if (buf == PT_HANDSHAKE)
+			{
+				buf = PT_ACK;
+				n = write(cl, &buf, 1);
+				if (n < 0) {
+					close(cl); //failed write, drop connection
+					cl = 0;
+					continue;
+				}
+				else
+					connected = 1;
+			}
+			else {
+				close(cl); //first byte was not a handshake, drop connection
+				cl = 0;
+				continue;
+			}
+		}
+		if (connected) {
+			char buf;
+			int n;
+			n = read(cl, &buf, 1); //read first byte
+			if (n < 0) {
+				close(cl); //failed read, drop connection
+				cl = 0;
+				connected = 0;
+				continue;
+			}
+			switch(buf) {
+				case 3:
+				buf = PT_RESPONSE;
+				n = write(cl, &buf, 1);
+				if (n < 0) {
+						close(cl); //failed write, drop connection
+						cl = 0;
+						connected = 0;
+						continue;
+					}
+					else {
+						char buff[8];
+						int c = 98;
+						int d = 23;
+						memcpy(buff, &c, 4);
+						memcpy(buff+4, &d, 4);
+						n = write(cl, &buff, 8);
+						if (n < 0) {
+						close(cl); //failed write, drop connection
+						cl = 0;
+						connected = 0;
+						continue;
+					}
+				}
+				break;
+				default:
+					break;//no other situations
+				}
+			}
 
+		}
+		return 0;
 	}
-	return 0;
-}
