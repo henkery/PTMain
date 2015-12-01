@@ -72,10 +72,8 @@ int main(int argc, char const *argv[])
 					break;//no other situations
 				}
 			}
-
-		}
-		else
-		{
+			else
+			{
 			if ( (cl = accept(sock, NULL, NULL)) == -1) { //wait for connections, fail on broken connection
 				perror("accept error");
 				cl = 0;
@@ -108,6 +106,9 @@ int main(int argc, char const *argv[])
 				continue;
 			}
 		}
+
 	}
-	return 0;
+	
+}
+return 0;
 }
