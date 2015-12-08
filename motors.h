@@ -14,8 +14,11 @@
 #define CRC_MASK                     0b01111111
 
 int mtr_motor_run(pthread_t *thread, mn_core_data *data);
-uint8_t control_motors_sep ( uint8_t command1, uint8_t speed1, uint8_t command2, uint8_t speed2, uint8_t address );
+uint8_t control_motors_sep ( uint8_t command1, uint8_t speed1, uint8_t command2, uint8_t speed2);
 static void send_command ( uint8_t command, uint8_t value, uint8_t address );
+uint8_t motors_forward(uint8_t speed);
+uint8_t motors_reverse(uint8_t speed);
+
 
 
 #endif
