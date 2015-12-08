@@ -1,6 +1,6 @@
 TARGET = prog
 LIBS = -lm -lpthread
-CC = gcc
+CC = /home/joris/qt-bbb/gcc-linaro-arm-linux-gnueabihf-4.7-2013.04-20130415_linux/bin/arm-linux-gnueabihf-gcc
 CFLAGS = -g -Wall
 
 .PHONY: default all clean
