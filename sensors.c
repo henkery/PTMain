@@ -25,10 +25,10 @@ void *sns_sensor_loop(void* vd_data)
 {
     mn_core_data *data = (mn_core_data *)vd_data;
     write_address(MPU6050, 0x6B, 0x00, 0);
-    //sns_mpu_init(100, 42);
-    sns_mpu_newinit();
+    sns_mpu_init(100, 42);
+    //sns_mpu_newinit();
     
-    int16_t ax,ay,az,gx,gy,gz;
+    /*int16_t ax,ay,az,gx,gy,gz;
 
     while (data->run) {
         uint8_t buffer[14];
@@ -39,7 +39,7 @@ void *sns_sensor_loop(void* vd_data)
         gx = (((int16_t)buffer[8]) << 8) | buffer[9];
         gy = (((int16_t)buffer[10]) << 8) | buffer[11];
         gz = (((int16_t)buffer[12]) << 8) | buffer[13];
-        printf("ax: %d, ay: %d, az %d, gx: %d, gy: %d, gz: %d, \n", ax,ay,az,gx,gy,gz);
+        printf("ax: %d, ay: %d, az %d, gx: %d, gy: %d, gz: %d, \n", ax,ay,az,gx,gy,gz);*/.
     }
         /*if (mpu_read())
         {
@@ -75,10 +75,10 @@ char sns_mpu_init(int mpuRate, int lpf){
         return -1;f
     }*/
     // Reset device 
-    write_address(MPU6050, PWR_MGMT_1, 0x80, 1);
-    usleep(100000);
+    //write_address(MPU6050, PWR_MGMT_1, 0x80, 1);
+    //usleep(100000);
     // Turn on device 
-    write_address(MPU6050, PWR_MGMT_1, 0x00, 1);
+    //write_address(MPU6050, PWR_MGMT_1, 0x00, 1);
     // Set MPU init values
     /*chip_cfg.sensors = 0x78;
     chip_cfg.sample_rate = 0xFFFF;
@@ -97,15 +97,15 @@ char sns_mpu_init(int mpuRate, int lpf){
     write_address(MPU6050, ACCEL_CFG, 0x00, 1);
     
     // Set clock source (PLL) (sensors already enabled by default)
-    write_address(MPU6050, PWR_MGMT_1, 0x01, 1);
+    write_address(MPU6050, PWR_MGMT_1, 0x01, 3);
     usleep(50000);
     
     // Configure fifo
     //configure_fifo(0x78);
     
     // Load firmware
-    //if (load_firmware(DMP_CODE_SIZE, &dmp_memory, 0x0400, DMP_SAMPLE_RATE))
-    //    return -1;
+    if (load_firmware(DMP_CODE_SIZE, &dmp_memory, 0x0400, DMP_SAMPLE_RATE))
+        return -1;
         
     // Setting orientation
     if (dmp_set_orientation(orientation_matrix_to_scalar(gyro_orientation)))
@@ -396,7 +396,7 @@ int dmp_enable_features(unsigned short mask){
 }
 
 int write_mem(unsigned short mem_addr, unsigned short length,
-                       unsigned char *data)
+                       unsigned uint8_t *data)
 {
     unsigned char tmp[2];
 
@@ -417,7 +417,7 @@ int write_mem(unsigned short mem_addr, unsigned short length,
 }
 
 int read_mem(unsigned short mem_addr, unsigned short length,
-unsigned char *data)
+unsigned uint8_t *data)
 {
     unsigned char tmp[2];
 
