@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <signal.h>
+#include "encoder.h"
 
 pthread_t th_sensor;
 pthread_t th_motor;
@@ -36,7 +37,7 @@ int main(int argc, char const *argv[])
 		return -1;
 	}
 
-
+	//init_encoder();
 	sns_sensor_run(&th_sensor, &data); //start other threads
 	//mtr_motor_run(&th_motor, &data);
 

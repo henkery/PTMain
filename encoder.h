@@ -5,3 +5,8 @@
 #include <stdint.h>
 
 #endif
+
+void setup();
+void init_encoder();
+void countLoop(float time);
+void rotary();

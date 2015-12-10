@@ -28,10 +28,10 @@ void *sns_sensor_loop(void* vd_data)
     sns_mpu_init(100, 42);
     //sns_mpu_newinit();
     
-    /*int16_t ax,ay,az,gx,gy,gz;
+    /*int16_t ax,ay,az,gx,gy,gz;*/
 
     while (data->run) {
-        uint8_t buffer[14];
+        /*uint8_t buffer[14];
         readByteBuffer(0x68, 0x3B, buffer, 14);
         ax = (((int16_t)buffer[0]) << 8) | buffer[1];
         ay = (((int16_t)buffer[2]) << 8) | buffer[3];
@@ -40,7 +40,7 @@ void *sns_sensor_loop(void* vd_data)
         gy = (((int16_t)buffer[10]) << 8) | buffer[11];
         gz = (((int16_t)buffer[12]) << 8) | buffer[13];
         printf("ax: %d, ay: %d, az %d, gx: %d, gy: %d, gz: %d, \n", ax,ay,az,gx,gy,gz);*/
-        /*if (mpu_read())
+        if (mpu_read())
         {
             printf("Sensor is not ready\n");
         }
@@ -49,7 +49,7 @@ void *sns_sensor_loop(void* vd_data)
             printf("data %li, %li, %li, %li,\n", rawQuat[0], rawQuat[1], rawQuat[2], rawQuat[3]);
         }
     }
-    return 0; */
+    return 0;
 }
 
 int sns_sensor_run(pthread_t *thread, mn_core_data *data) {
@@ -74,10 +74,10 @@ char sns_mpu_init(int mpuRate, int lpf){
         return -1;f
     }*/
     // Reset device 
-    //write_address(MPU6050, PWR_MGMT_1, 0x80, 1);
-    //usleep(100000);
+    write_address(MPU6050, PWR_MGMT_1, 0x80, 1);
+    usleep(100000);
     // Turn on device 
-    //write_address(MPU6050, PWR_MGMT_1, 0x00, 1);
+    write_address(MPU6050, PWR_MGMT_1, 0x00, 1);
     // Set MPU init values
     /*chip_cfg.sensors = 0x78;
     chip_cfg.sample_rate = 0xFFFF;
