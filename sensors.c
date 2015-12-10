@@ -28,7 +28,7 @@ void *sns_sensor_loop(void* vd_data)
     //sns_mpu_init(100, 42);
     sns_mpu_newinit();
     
-    int ax,ay,az,gx,gy,gz;
+    int16_t ax,ay,az,gx,gy,gz;
 
     while (data->run) {
         uint8_t buffer[14];
@@ -39,7 +39,7 @@ void *sns_sensor_loop(void* vd_data)
         gx = (((int16_t)buffer[8]) << 8) | buffer[9];
         gy = (((int16_t)buffer[10]) << 8) | buffer[11];
         gz = (((int16_t)buffer[12]) << 8) | buffer[13];
-        printf("ax: %i, ay: %i, az %i, gx: %i, gy: %i, gz: %i, \n", ax,ay,az,gx,gy,gz);
+        printf("ax: %d, ay: %d, az %d, gx: %d, gy: %d, gz: %d, \n", ax,ay,az,gx,gy,gz);
     }
         /*if (mpu_read())
         {
