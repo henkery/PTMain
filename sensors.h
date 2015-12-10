@@ -25,5 +25,9 @@ int set_sample_rate(unsigned short rate);
 int mpu_read_fifo();
 char mpu_read();
 unsigned char read_address(unsigned char device_addr, unsigned char register_addr, char stop);
+void writeBits(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t data, int length, int startBit);
+char sns_mpu_newinit();
+void writeBit(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t data, int bitNum);
+void readByteBuffer(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t *data, uint8_t length);
 
 #endif
