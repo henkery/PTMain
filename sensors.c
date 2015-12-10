@@ -547,11 +547,11 @@ int load_firmware(unsigned short length, const unsigned char *firmware,
             return -3;
         }
         
-        //if (read_mem(ii, this_write, cur))
-        //    return -4;
+        if (read_mem(ii, this_write, cur))
+            return -4;
         
-        //if (memcmp(progBuffer, cur, this_write)) {
-        //    printf("Firmware compare failed\n");
+        if (memcmp(progBuffer, cur, this_write)) {
+            printf("Firmware compare failed on %d\n", ii);
             //Serial.print("Firmware compare failed addr "); Serial.println(ii);
             /*for (int i = 0; i < 10; i++) {
                 printf("%s\n", );
@@ -564,8 +564,8 @@ int load_firmware(unsigned short length, const unsigned char *firmware,
                 Serial.print(" ");
             }
             Serial.println();*/
-        //    return -5;
-        //}
+            return -5;
+        }
     }
 
     /* Set program start address. */
