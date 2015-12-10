@@ -8,7 +8,7 @@ int dmp_set_orientation(unsigned short orient);
 void write_address(unsigned char device_addr, unsigned char register_addr, unsigned char val, char stop);
 char sns_mpu_init(int mpuRate, int lpf);
 int dmp_enable_features(unsigned short mask);
-void write_multiple_addresses(unsigned char device_addr, unsigned char start_addr, unsigned char val[], int amount_of_bytes);
+char write_multiple_addresses(unsigned char device_addr, unsigned char start_addr, unsigned char val[], int amount_of_bytes);
 int load_firmware(unsigned short length, const unsigned char *firmware,
                            unsigned short start_addr, unsigned short sample_rate);
 int set_fifo_rate(unsigned short rate);
