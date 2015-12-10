@@ -1,4 +1,5 @@
 //This is the sensors module of the PT control system.
+#include <stdint.h>
 #include <pthread.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -10,13 +11,11 @@
 #include "mpudefines.h"
 #include <unistd.h>
 #include <stdio.h>
-#include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 
 int run;
 long rawQuat[4];
-
 
 signed char gyro_orientation[9] = { 1, 0, 0,
                                     0, 1, 0,
@@ -41,6 +40,7 @@ void *sns_sensor_loop(void* vd_data)
         gy = (((int16_t)buffer[10]) << 8) | buffer[11];
         gz = (((int16_t)buffer[12]) << 8) | buffer[13];
         printf("ax: %i, ay: %i, az %i, gx: %i, gy: %i, gz: %i, \n", ax,ay,az,gx,gy,gz);
+    }
         /*if (mpu_read())
         {
             printf("Sensor is not ready\n");
@@ -48,9 +48,9 @@ void *sns_sensor_loop(void* vd_data)
         else
         {
             printf("data %li, %li, %li, %li,\n", rawQuat[0], rawQuat[1], rawQuat[2], rawQuat[3]);
-        }*/
+        }
     }
-    return 0;
+    return 0; */
 }
 
 int sns_sensor_run(pthread_t *thread, mn_core_data *data) {
@@ -72,7 +72,7 @@ char sns_mpu_init(int mpuRate, int lpf){
     
     // Check validity of data
     /*if ((mpuRate > 1000) || (mpuRate < 1)){
-        return -1;
+        return -1;f
     }*/
     // Reset device 
     write_address(MPU6050, PWR_MGMT_1, 0x80, 1);
@@ -104,8 +104,8 @@ char sns_mpu_init(int mpuRate, int lpf){
     //configure_fifo(0x78);
     
     // Load firmware
-    if (load_firmware(DMP_CODE_SIZE, &dmp_memory, 0x0400, DMP_SAMPLE_RATE))
-        return -1;
+    //if (load_firmware(DMP_CODE_SIZE, &dmp_memory, 0x0400, DMP_SAMPLE_RATE))
+    //    return -1;
         
     // Setting orientation
     if (dmp_set_orientation(orientation_matrix_to_scalar(gyro_orientation)))
@@ -544,8 +544,8 @@ int load_firmware(unsigned short length, const unsigned char *firmware,
         if (read_mem(ii, this_write, cur))
         return -4;
         
-        if (memcmp(progBuffer, cur, this_write)) {
-            printf("Firmware compare failed\n");
+        //if (memcmp(progBuffer, cur, this_write)) {
+        //    printf("Firmware compare failed\n");
             //Serial.print("Firmware compare failed addr "); Serial.println(ii);
             /*for (int i = 0; i < 10; i++) {
                 printf("%s\n", );
@@ -558,8 +558,8 @@ int load_firmware(unsigned short length, const unsigned char *firmware,
                 Serial.print(" ");
             }
             Serial.println();*/
-            return -5;
-        }
+        //    return -5;
+        //}
     }
 
     /* Set program start address. */
@@ -825,7 +825,7 @@ int mpu_read_fifo(){
 }
 
 void writeBits(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t data, int length, int startBit) {
-    int8_t temp = readByte(DEV_ADD, DATA_REGADD);
+    int8_t temp = read_address(DEV_ADD, DATA_REGADD, 0);
     uint8_t bits = 1;
     uint8_t i = 0;
 
@@ -844,7 +844,7 @@ void writeBits(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t data, int length, i
 }
 
 void writeBit(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t data, int bitNum) {
-    int8_t temp = readByte(DEV_ADD, DATA_REGADD);
+    int8_t temp = read_address(DEV_ADD, DATA_REGADD, 0);
     if (data == 0) {
         temp = temp & ~(1 << bitNum);
     } else if (data == 1) {
@@ -854,16 +854,17 @@ void writeBit(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t data, int bitNum) {
         exit(1);
     }
 
-    writeByte(DEV_ADD, DATA_REGADD, temp);
+    write_address(DEV_ADD, DATA_REGADD, temp, 0);
 
 }
 
 void readByteBuffer(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t *data, uint8_t length) {
 
     int file;
+    char *filename = "/dev/i2c-1";
 
-    if ((file = open(path, O_RDWR)) < 0) {
-        printf("%s do not open. Address %d.\n", path, DEV_ADD);
+    if ((file = open(filename, O_RDWR)) < 0) {
+        printf("%s do not open. Address %d.\n", filename, DEV_ADD);
         exit(1);
     }
 
