@@ -131,7 +131,7 @@ void write_address(unsigned char device_addr, unsigned char register_addr, unsig
         //perror("Failed to open the i2c bus");
         //return 1;
     }
-    int addr = 0x68;          // The I2C address of the MPU
+    int addr = device_addr;          // The I2C address of the MPU
     if (ioctl(file, I2C_SLAVE, addr) < 0) {
         printf("Failed to acquire bus access and/or talk to slave.\n");
         /* ERROR HANDLING; you can check errno to see what went wrong */
@@ -157,7 +157,7 @@ void write_multiple_addresses(unsigned char device_addr, unsigned char start_add
         //perror("Failed to open the i2c bus");
         //return 1;
     }
-    int addr = 0x68;          // The I2C address of the MPU
+    int addr = device_addr;          // The I2C address of the MPU
     if (ioctl(file, I2C_SLAVE, addr) < 0) {
         printf("Failed to acquire bus access and/or talk to slave.\n");
         /* ERROR HANDLING; you can check errno to see what went wrong */
@@ -187,7 +187,7 @@ void read_multiple_addresses(unsigned char device_addr, unsigned char start_addr
         //perror("Failed to open the i2c bus");
         //return 1;
     }
-    int addr = 0x68;          // The I2C address of the MPU
+    int addr = device_addr;          // The I2C address of the MPU
     if (ioctl(file, I2C_SLAVE, addr) < 0) {
         printf("Failed to acquire bus access and/or talk to slave.\n");
         /* ERROR HANDLING; you can check errno to see what went wrong */
@@ -209,7 +209,7 @@ void read_multiple_addresses(unsigned char device_addr, unsigned char start_addr
         //perror("Failed to open the i2c bus");
         //return 1;
     }
-    addr = 0x69;          // The I2C address of the MPU + 1
+    addr = device_addr;          // The I2C address of the MPU + 1
     if (ioctl(file, I2C_SLAVE, addr) < 0) {
         printf("Failed to acquire bus access and/or talk to slave.\n");
         /* ERROR HANDLING; you can check errno to see what went wrong */
@@ -715,7 +715,7 @@ unsigned char read_address(unsigned char device_addr, unsigned char register_add
         //perror("Failed to open the i2c bus");
         //return 1;
     }
-    int addr = 0x68;          // The I2C address of the MPU
+    int addr = device_addr;          // The I2C address of the MPU
     if (ioctl(file, I2C_SLAVE, addr) < 0) {
         printf("Failed to acquire bus access and/or talk to slave.\n");
         /* ERROR HANDLING; you can check errno to see what went wrong */
@@ -737,7 +737,7 @@ unsigned char read_address(unsigned char device_addr, unsigned char register_add
         //perror("Failed to open the i2c bus");
         //return 1;
     }
-    addr = 0x69;          // The I2C address of the MPU + 1
+    addr = device_addr;          // The I2C address of the MPU + 1
     if (ioctl(file, I2C_SLAVE, addr) < 0) {
         printf("Failed to acquire bus access and/or talk to slave.\n");
         /* ERROR HANDLING; you can check errno to see what went wrong */

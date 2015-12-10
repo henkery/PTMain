@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
+
 int fd;
 char port[20] = "/dev/ttyO0";
 speed_t baud = B9600;
@@ -34,11 +35,10 @@ int mtr_motor_run(pthread_t *thread, mn_core_data *data) {
     pthread_create(thread, NULL, mtr_motor_loop, data);
     return 0;
 }
-uint8_t control_motors_sep ( uint8_t command1, uint8_t speed1,
-uint8_t command2, uint8_t speed2) {
+
+uint8_t control_motors_sep ( uint8_t command1, uint8_t speed1, uint8_t command2, uint8_t speed2) {
     if ( ( command1 < COMMAND_LOW_LIMIT || command1 > DRIVE_MOTOR_2_7_BIT ) ||
     ( command2 < COMMAND_LOW_LIMIT || command2 > DRIVE_MOTOR_2_7_BIT ) ) {
-        printf("FALSEn");
         return FALSE;
     }
     else {
@@ -61,6 +61,23 @@ uint8_t motors_reverse(uint8_t speed) {
         return TRUE;
 }
 
+/*
+ * Function:  send_command 
+ * --------------------
+ * Send commands trough the port to the motor driver: *
+ * uint8_t command: Command based on Individual Motor Commands:
+ *                          0:  Drive Forward      Motor 1
+ *                          1:  Drive Reverse      Motor 1
+ *                          4:  Drive Forward      Motor 2
+ *                          5:  Drive Reverse      Motor 2
+ *                          6:  Drive 7-Bit        Motor 1
+ *                          7:  Drive 7-Bit        Motor 2
+ *
+ * uint8_t value: value is the speed/data/number you want to send
+ *
+ * uint8_t address: is the address used for the driver probally 128 in our case
+ *
+ */
 static void send_command ( uint8_t command, uint8_t value, uint8_t address ) {
     int file;
     char *filename = port;
@@ -68,15 +85,15 @@ static void send_command ( uint8_t command, uint8_t value, uint8_t address ) {
     speed_t speed;
     if((file = open(filename, O_RDWR))< 0)
     {
-        printf("ERROR, device doesnt open\n");
+		perror("Error [3]:");
         return;
     }
     if(tcgetattr(file, &attribs) < 0) {
-        perror("stdin");
+		perror("Error [3]:");
     }
     if(cfsetispeed(&attribs, B9600) < 0)
     {
-        perror("invalid baud rate");
+        perror("Error [3]:");
     }
     speed = cfgetispeed(&attribs);
     if(speed == 13){
@@ -86,11 +103,11 @@ static void send_command ( uint8_t command, uint8_t value, uint8_t address ) {
         buffer[2] = value;
         buffer[3] = ( address + command + value ) & CRC_MASK;
         if(write(file, buffer, 4) < 0){
-            printf("ERROR, write didnt work\n");
+            perror("Error [1]:");
         }
     }
     else{
-        printf("Baudrate not correct\n");
+        perror("Error [2]:");
     }
     close(file);
 }
