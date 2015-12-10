@@ -96,7 +96,7 @@ char sns_mpu_init(int mpuRate, int lpf){
     write_address(MPU6050, ACCEL_CFG, 0x00, 1);
     
     // Set clock source (PLL) (sensors already enabled by default)
-    write_address(MPU6050, PWR_MGMT_1, 0x01, 3);
+    write_address(MPU6050, PWR_MGMT_1, 0x01, 1);
     usleep(50000);
     
     // Configure fifo
@@ -173,7 +173,7 @@ char write_multiple_addresses(unsigned char device_addr, unsigned char start_add
     uint8_t buffer[1+amount_of_bytes];
 
     buffer[0] = start_addr;
-    memcpy(buffer, val, amount_of_bytes);
+    memcpy(buffer+1, val, amount_of_bytes);
 
     if (write(file, buffer, amount_of_bytes+1) != amount_of_bytes+1) {
         ret = 1;
