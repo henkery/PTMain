@@ -86,7 +86,7 @@ char sns_mpu_init(int mpuRate, int lpf){
     //configure_fifo(0x78);
     
     // Load firmware
-    if (load_firmware(DMP_CODE_SIZE, dmp_memory, 0x0400, DMP_SAMPLE_RATE))
+    if (load_firmware(DMP_CODE_SIZE, &dmp_memory, 0x0400, DMP_SAMPLE_RATE))
         return -1;
         
     // Setting orientation
