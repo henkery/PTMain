@@ -1,4 +1,5 @@
 //This is the sensors module of the PT control system.
+#include <stdint.h>
 #include <pthread.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -10,13 +11,11 @@
 #include "mpudefines.h"
 #include <unistd.h>
 #include <stdio.h>
-#include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 
 int run;
 long rawQuat[4];
-
 
 signed char gyro_orientation[9] = { 1, 0, 0,
                                     0, 1, 0,
@@ -28,12 +27,11 @@ void *sns_sensor_loop(void* vd_data)
     write_address(MPU6050, 0x6B, 0x00, 0);
     //sns_mpu_init(100, 42);
     sns_mpu_newinit();
-    
 
-
-    while (data->run) {=
+    while (data->run) {
         uint8_t buffer[14];
         readByteBuffer(0x68, 0x3B, buffer, 14);
+    }
         /*if (mpu_read())
         {
             printf("Sensor is not ready\n");
@@ -43,7 +41,7 @@ void *sns_sensor_loop(void* vd_data)
             printf("data %li, %li, %li, %li,\n", rawQuat[0], rawQuat[1], rawQuat[2], rawQuat[3]);
         }
     }
-    return 0;
+    return 0; */
 }
 
 int sns_sensor_run(pthread_t *thread, mn_core_data *data) {
@@ -818,7 +816,7 @@ int mpu_read_fifo(){
 }
 
 void writeBits(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t data, int length, int startBit) {
-    int8_t temp = readByte(DEV_ADD, DATA_REGADD);
+    int8_t temp = read_address(DEV_ADD, DATA_REGADD, 0);
     uint8_t bits = 1;
     uint8_t i = 0;
 
@@ -837,7 +835,7 @@ void writeBits(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t data, int length, i
 }
 
 void writeBit(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t data, int bitNum) {
-    int8_t temp = readByte(DEV_ADD, DATA_REGADD);
+    int8_t temp = read_address(DEV_ADD, DATA_REGADD, 0);
     if (data == 0) {
         temp = temp & ~(1 << bitNum);
     } else if (data == 1) {
@@ -847,16 +845,17 @@ void writeBit(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t data, int bitNum) {
         exit(1);
     }
 
-    writeByte(DEV_ADD, DATA_REGADD, temp);
+    write_address(DEV_ADD, DATA_REGADD, temp, 0);
 
 }
 
 void readByteBuffer(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t *data, uint8_t length) {
 
     int file;
+    char *filename = "/dev/i2c-1";
 
-    if ((file = open(path, O_RDWR)) < 0) {
-        printf("%s do not open. Address %d.\n", path, DEV_ADD);
+    if ((file = open(filename, O_RDWR)) < 0) {
+        printf("%s do not open. Address %d.\n", filename, DEV_ADD);
         exit(1);
     }
 
