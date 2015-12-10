@@ -547,8 +547,8 @@ int load_firmware(unsigned short length, const unsigned char *firmware,
             return -3;
         }
         
-        if (read_mem(ii, this_write, cur))
-            return -4;
+        //if (read_mem(ii, this_write, cur))
+        //    return -4;
         
         //if (memcmp(progBuffer, cur, this_write)) {
         //    printf("Firmware compare failed\n");
