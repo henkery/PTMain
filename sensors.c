@@ -154,8 +154,9 @@ void write_address(unsigned char device_addr, unsigned char register_addr, unsig
     close(file);
 }
 
-void write_multiple_addresses(unsigned char device_addr, unsigned char start_addr, unsigned char val[], int amount_of_bytes){
+char write_multiple_addresses(unsigned char device_addr, unsigned char start_addr, unsigned char val[], int amount_of_bytes){
     int file;
+    char ret =0;
     char *filename = "/dev/i2c-1";
     if ((file = open(filename, O_RDWR)) < 0) {
         printf("Failed to open device\n");
@@ -174,14 +175,17 @@ void write_multiple_addresses(unsigned char device_addr, unsigned char start_add
     buffer[0] = start_addr;
 
     if (write(file, buffer, 1) != 1) {
+        ret = 1;
         printf("Can not write data. Address %d.\n", device_addr);
     }
 
     unsigned char *p = &val[0];
     if (write(file, val, amount_of_bytes) != amount_of_bytes) {
+        ret=1;
         printf("Can not write data. Address %d.\n", device_addr);
     }
     close(file);
+    return ret;
 }
 
 void read_multiple_addresses(unsigned char device_addr, unsigned char start_addr, unsigned char val[], int amount_of_bytes){
@@ -409,8 +413,10 @@ int write_mem(unsigned short mem_addr, unsigned short length, uint8_t *data)
     /* Check bank boundaries. */
     if (tmp[1] + length > BANK_SIZE)
         return -3;
-    write_multiple_addresses(MPU6050, BANK_SEL, tmp, 2);
-    write_multiple_addresses(MPU6050, MEM_RW, data, length);
+    if (write_multiple_addresses(MPU6050, BANK_SEL, tmp, 2))
+        return 1;
+    if (write_multiple_addresses(MPU6050, MEM_RW, data, length))
+        return 1;
     return 0;
 }
 
@@ -538,8 +544,8 @@ int load_firmware(unsigned short length, const unsigned char *firmware,
             return -3;
         }
         
-        if (read_mem(ii, this_write, cur))
-        return -4;
+        //if (read_mem(ii, this_write, cur))
+        //    return -4;
         
         //if (memcmp(progBuffer, cur, this_write)) {
         //    printf("Firmware compare failed\n");
@@ -563,6 +569,7 @@ int load_firmware(unsigned short length, const unsigned char *firmware,
     tmp[0] = start_addr >> 8;
     tmp[1] = start_addr & 0xFF;
     write_multiple_addresses(MPU6050, 0x70, tmp, 2);
+    printf("Firmware loaded\n");
 
     //chip_cfg.dmp_loaded = 1;
     //chip_cfg.dmp_sample_rate = sample_rate;
