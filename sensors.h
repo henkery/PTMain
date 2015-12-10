@@ -15,7 +15,7 @@ int set_fifo_rate(unsigned short rate);
 int set_lpf(unsigned short lpf);
 int set_dmp_state(unsigned char enable);
 int write_mem(unsigned short mem_addr, unsigned short length,
-                       unsigned char *data);
+                       unsigned uint8_t *data);
 int enable_gyro_cal(unsigned char enable);
 int reset_fifo(void);
 int enable_lp_quat(unsigned char enable);
