@@ -29,11 +29,18 @@ void *sns_sensor_loop(void* vd_data)
     //sns_mpu_init(100, 42);
     sns_mpu_newinit();
     
-
+    int ax,ay,az,gx,gy,gz;
 
     while (data->run) {
         uint8_t buffer[14];
         readByteBuffer(0x68, 0x3B, buffer, 14);
+        ax = (((int16_t)buffer[0]) << 8) | buffer[1];
+        ay = (((int16_t)buffer[2]) << 8) | buffer[3];
+        az = (((int16_t)buffer[4]) << 8) | buffer[5];
+        gx = (((int16_t)buffer[8]) << 8) | buffer[9];
+        gy = (((int16_t)buffer[10]) << 8) | buffer[11];
+        gz = (((int16_t)buffer[12]) << 8) | buffer[13];
+        printf("ax: %i, ay: %i, az %i, gx: %i, gy: %i, gz: %i, \n", ax,ay,az,gx,gy,gz);
         /*if (mpu_read())
         {
             printf("Sensor is not ready\n");
