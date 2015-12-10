@@ -170,20 +170,21 @@ char write_multiple_addresses(unsigned char device_addr, unsigned char start_add
         /* ERROR HANDLING; you can check errno to see what went wrong */
     }
 
-    uint8_t buffer[1];
+    uint8_t buffer[1+amount_of_bytes];
 
     buffer[0] = start_addr;
+    memcpy(buffer, val, amount_of_bytes);
 
-    if (write(file, buffer, 1) != 1) {
+    if (write(file, buffer, amount_of_bytes+1) != 1) {
         ret = 1;
         printf("Can not write data. Address %d.\n", device_addr);
     }
 
-    unsigned char *p = &val[0];
+    /*unsigned char *p = &val[0];
     if (write(file, val, amount_of_bytes) != amount_of_bytes) {
         ret=1;
         printf("Can not write data. Address %d.\n", device_addr);
-    }
+    }*/
     close(file);
     return ret;
 }
