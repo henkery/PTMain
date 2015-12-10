@@ -39,8 +39,7 @@ void *sns_sensor_loop(void* vd_data)
         gx = (((int16_t)buffer[8]) << 8) | buffer[9];
         gy = (((int16_t)buffer[10]) << 8) | buffer[11];
         gz = (((int16_t)buffer[12]) << 8) | buffer[13];
-        printf("ax: %d, ay: %d, az %d, gx: %d, gy: %d, gz: %d, \n", ax,ay,az,gx,gy,gz);*/.
-    }
+        printf("ax: %d, ay: %d, az %d, gx: %d, gy: %d, gz: %d, \n", ax,ay,az,gx,gy,gz);*/
         /*if (mpu_read())
         {
             printf("Sensor is not ready\n");
@@ -395,8 +394,7 @@ int dmp_enable_features(unsigned short mask){
     return 0;
 }
 
-int write_mem(unsigned short mem_addr, unsigned short length,
-                       unsigned uint8_t *data)
+int write_mem(unsigned short mem_addr, unsigned short length, uint8_t *data)
 {
     unsigned char tmp[2];
 
@@ -416,8 +414,7 @@ int write_mem(unsigned short mem_addr, unsigned short length,
     return 0;
 }
 
-int read_mem(unsigned short mem_addr, unsigned short length,
-unsigned uint8_t *data)
+int read_mem(unsigned short mem_addr, unsigned short length, uint8_t *data)
 {
     unsigned char tmp[2];
 

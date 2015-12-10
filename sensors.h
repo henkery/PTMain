@@ -9,13 +9,11 @@ void write_address(unsigned char device_addr, unsigned char register_addr, unsig
 char sns_mpu_init(int mpuRate, int lpf);
 int dmp_enable_features(unsigned short mask);
 void write_multiple_addresses(unsigned char device_addr, unsigned char start_addr, unsigned char val[], int amount_of_bytes);
-int load_firmware(unsigned short length, const unsigned char *firmware,
-                           unsigned short start_addr, unsigned short sample_rate);
+int load_firmware(unsigned short length, const unsigned char *firmware,unsigned short start_addr, unsigned short sample_rate);
 int set_fifo_rate(unsigned short rate);
 int set_lpf(unsigned short lpf);
 int set_dmp_state(unsigned char enable);
-int write_mem(unsigned short mem_addr, unsigned short length,
-                       unsigned uint8_t *data);
+int write_mem(unsigned short mem_addr, unsigned short length, uint8_t *data);
 int enable_gyro_cal(unsigned char enable);
 int reset_fifo(void);
 int enable_lp_quat(unsigned char enable);
