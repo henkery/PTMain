@@ -31,14 +31,14 @@ void *sns_sensor_loop(void* vd_data)
 
 
     while (data->run) {
-        /*if (mpu_read())
+        if (mpu_read())
         {
             printf("Sensor is not ready\n");
         }
         else
         {
             printf("data %li, %li, %li, %li,\n", rawQuat[0], rawQuat[1], rawQuat[2], rawQuat[3]);
-        }*/
+        }
     }
     return 0;
 }
@@ -54,7 +54,7 @@ char sns_mpu_init(int mpuRate, int lpf){
     
     // Check validity of data
     /*if ((mpuRate > 1000) || (mpuRate < 1)){
-        return -1;
+        return -1;f
     }*/
     // Reset device 
     write_address(MPU6050, PWR_MGMT_1, 0x80, 1);
@@ -86,8 +86,8 @@ char sns_mpu_init(int mpuRate, int lpf){
     //configure_fifo(0x78);
     
     // Load firmware
-    if (load_firmware(DMP_CODE_SIZE, &dmp_memory, 0x0400, DMP_SAMPLE_RATE))
-        return -1;
+    //if (load_firmware(DMP_CODE_SIZE, &dmp_memory, 0x0400, DMP_SAMPLE_RATE))
+    //    return -1;
         
     // Setting orientation
     if (dmp_set_orientation(orientation_matrix_to_scalar(gyro_orientation)))
@@ -526,8 +526,8 @@ int load_firmware(unsigned short length, const unsigned char *firmware,
         if (read_mem(ii, this_write, cur))
         return -4;
         
-        if (memcmp(progBuffer, cur, this_write)) {
-            printf("Firmware compare failed\n");
+        //if (memcmp(progBuffer, cur, this_write)) {
+        //    printf("Firmware compare failed\n");
             //Serial.print("Firmware compare failed addr "); Serial.println(ii);
             /*for (int i = 0; i < 10; i++) {
                 printf("%s\n", );
@@ -540,8 +540,8 @@ int load_firmware(unsigned short length, const unsigned char *firmware,
                 Serial.print(" ");
             }
             Serial.println();*/
-            return -5;
-        }
+        //    return -5;
+        //}
     }
 
     /* Set program start address. */
