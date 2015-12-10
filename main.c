@@ -8,13 +8,21 @@
 #include "ipcproto.h"
 #include <unistd.h>
 #include <string.h>
+#include <signal.h>
 
 pthread_t th_sensor;
 pthread_t th_motor;
 mn_core_data data;
 
+void Segfault_Handler(int signo)
+{
+    fprintf(stderr,"Program terminated: Trying to shutdown motors\n");
+    //insert safety procedure here!
+}
+
 int main(int argc, char const *argv[])
 {
+	signal(SIGSEGV,Segfault_Handler);
 	int cl,rc;
 	int sock = socket(AF_LOCAL, SOCK_STREAM, 0);  // initialize domain socket
 	struct sockaddr_un addr;
@@ -29,7 +37,7 @@ int main(int argc, char const *argv[])
 
 
 	sns_sensor_run(&th_sensor, &data); //start other threads
-	mtr_motor_run(&th_motor, &data);
+	//mtr_motor_run(&th_motor, &data);
 
 	char connected = 0;
 	while (data.run) {
