@@ -26,19 +26,22 @@ void *sns_sensor_loop(void* vd_data)
 {
     mn_core_data *data = (mn_core_data *)vd_data;
     write_address(MPU6050, 0x6B, 0x00, 0);
-    sns_mpu_init(100, 42);
+    //sns_mpu_init(100, 42);
+    sns_mpu_newinit();
     
 
 
     while (data->run) {
-        if (mpu_read())
+        uint8_t buffer[14];
+        readByteBuffer(0x68, 0x3B, buffer, 14);
+        /*if (mpu_read())
         {
             printf("Sensor is not ready\n");
         }
         else
         {
             printf("data %li, %li, %li, %li,\n", rawQuat[0], rawQuat[1], rawQuat[2], rawQuat[3]);
-        }
+        }*/
     }
     return 0;
 }
@@ -46,6 +49,14 @@ void *sns_sensor_loop(void* vd_data)
 int sns_sensor_run(pthread_t *thread, mn_core_data *data) {
     pthread_create(thread, NULL, sns_sensor_loop, data);
     return 0;
+}
+
+char sns_mpu_newinit()
+{
+    writeBits(0x68, 0x6B, 0x01, 3, 0);
+    writeBits(0x68, 0x1B, 0x00, 2, 3);
+    writeBits(0x68, 0x1C, 0x00, 2, 3);
+    writeBit(0x68, 0x6B, 1, 6);
 }
 
 
@@ -552,6 +563,7 @@ int load_firmware(unsigned short length, const unsigned char *firmware,
     //chip_cfg.dmp_loaded = 1;
     //chip_cfg.dmp_sample_rate = sample_rate;
     //Serial.println("Firmware loaded");
+    free(progBuffer);
     return 0;
 }
 
@@ -803,4 +815,69 @@ int mpu_read_fifo(){
         ((long)fifo_data[14] << 8) | fifo_data[15];
     
     return 0;
+}
+
+void writeBits(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t data, int length, int startBit) {
+    int8_t temp = readByte(DEV_ADD, DATA_REGADD);
+    uint8_t bits = 1;
+    uint8_t i = 0;
+
+    while (i < length - 1) {
+        bits = (bits << 1);
+        ++bits;
+        ++i;
+    }
+
+    temp &= ~(bits << startBit);
+
+    temp |= (data << startBit);
+
+    write_address(DEV_ADD, DATA_REGADD, temp, 0);
+
+}
+
+void writeBit(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t data, int bitNum) {
+    int8_t temp = readByte(DEV_ADD, DATA_REGADD);
+    if (data == 0) {
+        temp = temp & ~(1 << bitNum);
+    } else if (data == 1) {
+        temp = temp | (1 << bitNum);
+    } else {
+        printf("Value must be 0 or 1! --> Address %d.\n", DEV_ADD);
+        exit(1);
+    }
+
+    writeByte(DEV_ADD, DATA_REGADD, temp);
+
+}
+
+void readByteBuffer(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t *data, uint8_t length) {
+
+    int file;
+
+    if ((file = open(path, O_RDWR)) < 0) {
+        printf("%s do not open. Address %d.\n", path, DEV_ADD);
+        exit(1);
+    }
+
+    if (ioctl(file, I2C_SLAVE, DEV_ADD) < 0) {
+        printf("Can not join I2C Bus. Address %d.\n", DEV_ADD);
+        exit(1);
+    }
+
+    uint8_t buffer[1];
+    buffer[0] = DATA_REGADD;
+
+    if (write(file, buffer, 1) != 1) {
+        printf("Can not write data. Address %d.\n", DEV_ADD);
+        exit(1);
+    }
+
+    if (read(file, data, length) != length) {
+        printf("Can not read data. Address %d.\n", DEV_ADD);
+        exit(1);
+    }
+
+    close(file);
+
 }
