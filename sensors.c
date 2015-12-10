@@ -175,7 +175,7 @@ char write_multiple_addresses(unsigned char device_addr, unsigned char start_add
     buffer[0] = start_addr;
     memcpy(buffer, val, amount_of_bytes);
 
-    if (write(file, buffer, amount_of_bytes+1) != 1) {
+    if (write(file, buffer, amount_of_bytes+1) != amount_of_bytes+1) {
         ret = 1;
         printf("Can not write data. Address %d.\n", device_addr);
     }
