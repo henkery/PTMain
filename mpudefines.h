@@ -43,6 +43,8 @@
 #define I2C_S1_DO		(0x64)
 #define I2C_DELAY_CTRL	(0x67)
 
+#define M_PI   (3.14159265358979323846)
+
 // these are magnetometer defines
 #define AKM8975			(0x1C)
 #define AKM_WHO_AM_I	(0x00)

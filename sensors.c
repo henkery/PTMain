@@ -1,5 +1,6 @@
 //This is the sensors module of the PT control system.
 #include <stdint.h>
+#include <math.h>
 #include <pthread.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -13,9 +14,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include "fmath.h"
 
 int run;
 long rawQuat[4];
+float dmpQuat[4];
+float dmpEuler[3];
 
 signed char gyro_orientation[9] = { 1, 0, 0,
                                     0, 1, 0,
@@ -31,22 +35,14 @@ void *sns_sensor_loop(void* vd_data)
     /*int16_t ax,ay,az,gx,gy,gz;*/
 
     while (data->run) {
-        /*uint8_t buffer[14];
-        readByteBuffer(0x68, 0x3B, buffer, 14);
-        ax = (((int16_t)buffer[0]) << 8) | buffer[1];
-        ay = (((int16_t)buffer[2]) << 8) | buffer[3];
-        az = (((int16_t)buffer[4]) << 8) | buffer[5];
-        gx = (((int16_t)buffer[8]) << 8) | buffer[9];
-        gy = (((int16_t)buffer[10]) << 8) | buffer[11];
-        gz = (((int16_t)buffer[12]) << 8) | buffer[13];
-        printf("ax: %d, ay: %d, az %d, gx: %d, gy: %d, gz: %d, \n", ax,ay,az,gx,gy,gz);*/
         if (mpu_read())
         {
             printf("Sensor is not ready\n");
         }
         else
         {
-            printf("data %li, %li, %li, %li,\n", rawQuat[0], rawQuat[1], rawQuat[2], rawQuat[3]);
+            mpu_calculate_angles_2();
+            mpu_print_angles(dmpEuler);
         }
     }
     return 0;
@@ -55,14 +51,6 @@ void *sns_sensor_loop(void* vd_data)
 int sns_sensor_run(pthread_t *thread, mn_core_data *data) {
     pthread_create(thread, NULL, sns_sensor_loop, data);
     return 0;
-}
-
-char sns_mpu_newinit()
-{
-    writeBits(0x68, 0x6B, 0x01, 3, 0);
-    writeBits(0x68, 0x1B, 0x00, 2, 3);
-    writeBits(0x68, 0x1C, 0x00, 2, 3);
-    writeBit(0x68, 0x6B, 1, 6);
 }
 
 
@@ -893,4 +881,50 @@ void readByteBuffer(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t *data, uint8_t
 
     close(file);
 
+}
+
+void converse_fixed_quat_to_euler(float q[], float v[]){
+    int32_t qx = (fmath_float_to_fixed(q[QUATX]));
+    int32_t qy = (fmath_float_to_fixed(q[QUATY]));
+    int32_t qz = (fmath_float_to_fixed(q[QUATZ]));
+    int32_t qw = (fmath_float_to_fixed(q[QUATW]));
+    int32_t fpole = 0x00018552;
+    int32_t ey = fmath_fixed_asin(fmath_fixed_mul(FIX_TWO , (fmath_fixed_mul(qw, qy) - fmath_fixed_mul(qx, qz))));
+    int32_t ex = 0;
+    if ((ey < fpole) && (ey > -fpole))
+        ex = fmath_fixed_atan2(fmath_fixed_mul(FIX_TWO , ((fmath_fixed_mul(qy , qz) + fmath_fixed_mul(qw , qx)))),
+                      FIX_ONE - fmath_fixed_mul(FIX_TWO , (fmath_fixed_mul(qx , qx) + fmath_fixed_mul(qy , qy))));
+    
+    int32_t ez = fmath_fixed_atan2(fmath_fixed_mul(FIX_TWO , ((fmath_fixed_mul(qx , qy) + fmath_fixed_mul(qw , qz)))),
+                      FIX_ONE - fmath_fixed_mul(FIX_TWO , (fmath_fixed_mul(qy , qy) + fmath_fixed_mul(qz , qz))));
+                  
+    v[VEC3_X] = fmath_fixed_to_float(ex);
+    v[VEC3_Y] = fmath_fixed_to_float(ey);
+    v[VEC3_Z] = fmath_fixed_to_float(ez);
+}
+
+void converse_quaternion_normalize(float q[]){
+    float length = sqrt(q[QUATW] * q[QUATW] + q[QUATX] * q[QUATX] +
+                        q[QUATY] * q[QUATY] + q[QUATZ] * q[QUATZ]);     
+    
+    if (length == 0)
+        return;
+    q[QUATW] /= length;
+    q[QUATX] /= length;
+    q[QUATY] /= length;
+    q[QUATZ] /= length;
+}
+
+void mpu_calculate_angles_2(){
+    // convert quaternion
+    dmpQuat[QUATW] = (float)rawQuat[QUATW];
+    dmpQuat[QUATX] = (float)rawQuat[QUATX];
+    dmpQuat[QUATY] = (float)rawQuat[QUATY];
+    dmpQuat[QUATZ] = (float)rawQuat[QUATZ];
+    converse_quaternion_normalize(dmpQuat);
+    converse_fixed_quat_to_euler(dmpQuat, dmpEuler);
+}
+
+void mpu_print_angles(float *vec){
+    printf("%f, %f, %f\n", vec[VEC3_X] * RAD_TO_DEGREE, (vec[VEC3_Y]) * RAD_TO_DEGREE, vec[VEC3_Z] * RAD_TO_DEGREE);
 }

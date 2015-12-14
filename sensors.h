@@ -28,5 +28,7 @@ void writeBits(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t data, int length, i
 char sns_mpu_newinit();
 void writeBit(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t data, int bitNum);
 void readByteBuffer(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t *data, uint8_t length);
+void mpu_calculate_angles_2();
+void mpu_print_angles(float *vec);
 
 #endif
