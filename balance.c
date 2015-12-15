@@ -28,7 +28,12 @@ void bal_balance(int gyroangle, uint8_t motorspeed, uint8_t* newmotorspeed)
 
      if (abs(power) < 100)
        tMotorPosOK = clock();
-     *newmotorspeed = power;
+     if (power > 100)
+       *newmotorspeed = 126;
+     else if (power <-100)
+       *newmotorspeed = -126;
+     else
+       *newmotorspeed = power;
     //TODO power motors 
      printf("set motors to %d\n", power);
 
