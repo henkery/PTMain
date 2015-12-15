@@ -38,7 +38,7 @@ void *mtr_motor_loop(void* vd_data)
     if (motorspeed>=0)
     	motors_forward(motorspeed);
     else
-    	motors_reverse(motorspeed);
+    	motors_reverse(motorspeed*-1);
     return 0;
 }
 
