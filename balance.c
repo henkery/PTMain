@@ -1,11 +1,12 @@
 #include <time.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdint.h>
 #include "balance.h"
 
 int prevgyro = 0;
 
-void bal_balance(int gyroangle, int motorspeed)
+void bal_balance(int gyroangle, uint8_t motorspeed, uint8_t* newmotorspeed)
 {
   int gyrospeed;
 
@@ -26,8 +27,8 @@ void bal_balance(int gyroangle, int motorspeed)
 
      if (abs(power) < 100)
        tMotorPosOK = clock();
-
-    //TODO power motors
+     *newmotorspeed = power;
+    //TODO power motors 
      printf("set motors to %d\n", power);
 
      if ((clock() - tMotorPosOK) > 1500) {

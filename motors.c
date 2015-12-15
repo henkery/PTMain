@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include "balance.h"
 
 int fd;
 char port[20] = "/dev/ttyO0";
@@ -20,14 +21,24 @@ int run;
 void *mtr_motor_loop(void* vd_data)
 {
     char *filename = port;
+    uint8_t motorspeed = 0;
     fd = open(filename, O_RDWR);
     mn_core_data *data = (mn_core_data *)vd_data;
     printf("Start succes, starting loop\n");
     while (data->run) {
-        if (!motors_reverse(0)) {
-        	break;
-        }
+    	if (!data->selectbuf) //always select a different buffer
+            {
+            	bal_balance(data->buf_angle_2, motorspeed, &motorspeed);
+            }
+            else
+            {
+                bal_balance(data->buf_angle_1, motorspeed, &motorspeed);
+            }
     }
+    if (motorspeed>=0)
+    	motors_forward(motorspeed);
+    else
+    	motors_reverse(motorspeed);
     return 0;
 }
 
