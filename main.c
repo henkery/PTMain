@@ -56,8 +56,10 @@ int main(int argc, char const *argv[])
 	if (listen(sock, 5) == -1) { //listen to connections on the socket, exit if fails
 		return -1;
 	}
+	
+    encoder_init();
 
-	sns_sensor_run(&th_sensor, &data); //start other threads
+	//sns_sensor_run(&th_sensor, &data); //start other threads
 	//mtr_motor_run(&th_motor, &data);
 
 	char connected = 0;
