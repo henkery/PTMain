@@ -37,10 +37,6 @@ void bal_balance(float gyroangle, uint8_t motorspeed, uint8_t* newmotorspeed)
     //TODO power motors 
      printf("set motors to %d\n", power);
 
-     if ((clock() - tMotorPosOK) > 1500) {
-       break;
-     }
-     usleep(200); //TODO consider if this delay is neccesary
   //TODO stop motors
   //TODO inform system of critical failure (fell down)
 }
