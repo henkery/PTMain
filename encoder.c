@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "gpio.h"
-#include <time.h>
+#include <sys/time.h>
 
 const int pin_A = 38;
 const int pin_B = 39;
@@ -14,7 +14,8 @@ int increaseAmount = 1;    // how many points to fade the LED per turn
 int pulse = 0;    // how many turns have been completed
 int oldpulse = 0;
 
-clock_t currentTime;
+struct timeval currentTime;
+struct timeval start;
 
 float RPM = 0;
 int resolution = 1000;
@@ -24,15 +25,14 @@ void encoder_init(){
     printf("SETUP DONE\n");
     while(1){
         int end = 0;
-        clock_t start = clock();
+        gettimeofday(&start, NULL);
         oldpulse = pulse;
         while(!end){
             usleep(50000);
-            currentTime = clock();
+            gettimeofday(&currentTime, NULL);
             readRotary();
-            if (currentTime == (10000 + start)){
+            if (currentTime.tv_usec == 1000+start.tv_usec){
                 end = 1;
-                printf("pulse - oldpulse: %d\n", pulse - oldpulse);
                 RPM = ((pulse - oldpulse) * 60)/resolution;
                 printf("RPM: %f\n", RPM);
             }

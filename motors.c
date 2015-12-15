@@ -26,7 +26,7 @@ void *mtr_motor_loop(void* vd_data)
     mn_core_data *data = (mn_core_data *)vd_data;
     printf("Start succes, starting loop\n");
     while (data->run) {
-    	if (!data->selectbuf) //always select a different buffer
+        if (!data->selectbuf) //always select a different buffer
             {
             	bal_balance(data->buf_angle_2, motorspeed, &motorspeed);
             }
@@ -34,12 +34,12 @@ void *mtr_motor_loop(void* vd_data)
             {
                 bal_balance(data->buf_angle_1, motorspeed, &motorspeed);
             }
-    }
     if (motorspeed>=0)
-    	motors_forward(motorspeed);
+        motors_forward(motorspeed);
     else
-    	motors_reverse(motorspeed*-1);
+        motors_reverse(motorspeed*-1);
     return 0;
+    }
 }
 
 int mtr_motor_run(pthread_t *thread, mn_core_data *data) {
