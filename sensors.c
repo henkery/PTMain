@@ -2,16 +2,9 @@
 #include <stdint.h>
 #include <math.h>
 #include <pthread.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/ioctl.h>
-#include <fcntl.h>
 #include "header.h"
 #include "sensors.h"
-#include <unistd.h>
 #include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include "fmath.h"
 #include "i2c_functions.h"
 #include "mpudefines.h"
