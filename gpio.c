@@ -1,166 +1,185 @@
-/**
- * @file gpio.c
- * @author Ethan Hayon
- *
- * This file contains GPIO functions using high
- * performance mmap of /dev/mem
- *
- * Licensed under the MIT License (MIT)
- * See MIT-LICENSE file for more information
- */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <poll.h>
 
-#include "gpio.h"
+ /****************************************************************
+ * Constants
+ ****************************************************************/
+ 
+#define SYSFS_GPIO_DIR "/sys/class/gpio"
+#define POLL_TIMEOUT (3 * 1000) /* 3 seconds */
+#define MAX_BUF 64
 
-static volatile uint32_t *map;
-static char mapped = FALSE;
-
-/**
- * map /dev/mem to memory
- *
- * @returns whether or not the mapping of /dev/mem into memory was successful
- */
-int init() {
-	if(!mapped) {
-		int fd;
-		fd = open("/dev/mem", O_RDWR);
-		if(fd == -1) {
-			perror("Unable to open /dev/mem");
-			exit(EXIT_FAILURE);
-		}
-		map = (uint32_t*)mmap(NULL, MMAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, MMAP_OFFSET);
-		if(map == MAP_FAILED) {
-			close(fd);
-			perror("Unable to map /dev/mem");
-			exit(EXIT_FAILURE);
-		}
-		mapped = TRUE;
-	}
-	return mapped;
+/****************************************************************
+ * gpio_export
+ ****************************************************************/
+int gpio_export(unsigned int gpio)
+{
+    int fd, len;
+    char buf[MAX_BUF];
+ 
+    fd = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
+    if (fd < 0) {
+        perror("gpio/export");
+        return fd;
+    }
+ 
+    len = snprintf(buf, sizeof(buf), "%d", gpio);
+    write(fd, buf, len);
+    close(fd);
+ 
+    return 0;
 }
 
-/**
- * Set up a pin for future use
- *
- * @param pin The pin to set up
- * @param direction Configure the pin as INPUT or OUTPUT
- * @param mux Mux mode to use for this pin 0-7
- * @param pull PULLUP, PULLDOWN, or DISABLED
- * @returns the pin was successfully configured
- */
-int pinMode(PIN pin, unsigned char direction, unsigned char mux, unsigned char pull) {
-	// map over the values of pull, 0=pulldown, 1=pullup, 2=disabled
-	int pin_data = 0;
-	FILE *fp = NULL;
-	char muxfile[64];
-	pin_data |=  mux; // set the mux mode
-	// set up the pull up/down resistors
-	if(pull == DISABLED) pin_data |= 1 << 3;
-	if(pull == PULLUP)   pin_data |= 1 << 4;
-	pin_data |= direction << 5; // set up the pin direction
-	// write the pin_data
-	sprintf(muxfile, "%s/%s", CONFIG_MUX_PATH, pin.mux);
-	// open the file
-	if((fp = fopen(muxfile, "w")) == NULL) {
-		perror("Cannot set pin mode");
-		exit(1);
-	}
-	fprintf(fp, "%x", pin_data);
-	fclose(fp);
-
-	return 1;
+/****************************************************************
+ * gpio_unexport
+ ****************************************************************/
+int gpio_unexport(unsigned int gpio)
+{
+    int fd, len;
+    char buf[MAX_BUF];
+ 
+    fd = open(SYSFS_GPIO_DIR "/unexport", O_WRONLY);
+    if (fd < 0) {
+        perror("gpio/export");
+        return fd;
+    }
+ 
+    len = snprintf(buf, sizeof(buf), "%d", gpio);
+    write(fd, buf, len);
+    close(fd);
+    return 0;
 }
 
-
-/**
- * Set a GPIO digital output * @param p Pin to write to
- *
- * @param mode Position to set the pin, HIGH or LOW
- * @returns output was successfully written
- */
-int digitalWrite(PIN p, uint8_t mode) {
-	init();
-	map[(p.gpio_bank-MMAP_OFFSET+GPIO_OE)/4] &= ~(1<<p.bank_id);
-	if(mode == HIGH) map[(p.gpio_bank-MMAP_OFFSET+GPIO_DATAOUT)/4] |= 1<<p.bank_id;
-	else map[(p.gpio_bank-MMAP_OFFSET+GPIO_DATAOUT)/4] &= ~(1<<p.bank_id);
-
-	return 1;
+/****************************************************************
+ * gpio_set_dir
+ ****************************************************************/
+int gpio_set_dir(unsigned int gpio, unsigned int out_flag)
+{
+    int fd, len;
+    char buf[MAX_BUF];
+ 
+    len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR  "/gpio%d/direction", gpio);
+ 
+    fd = open(buf, O_WRONLY);
+    if (fd < 0) {
+        perror("gpio/direction");
+        return fd;
+    }
+ 
+    if (out_flag)
+        write(fd, "out", 4);
+    else
+        write(fd, "in", 3);
+ 
+    close(fd);
+    return 0;
 }
 
-/**
- * Read the input from a digital input. You must set 
- * the pin as an INPUT using the pinMode function
- *
- * @param p Pin to read from
- * @returns the value of the pin
- */
-int digitalRead(PIN p) {
-	init();
-	return (map[(p.gpio_bank-MMAP_OFFSET+GPIO_DATAIN)/4] & (1<<p.bank_id))>>p.bank_id;
+/****************************************************************
+ * gpio_set_value
+ ****************************************************************/
+int gpio_set_value(unsigned int gpio, unsigned int value)
+{
+    int fd, len;
+    char buf[MAX_BUF];
+ 
+    len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", gpio);
+ 
+    fd = open(buf, O_WRONLY);
+    if (fd < 0) {
+        perror("gpio/set-value");
+        return fd;
+    }
+ 
+    if (value)
+        write(fd, "1", 2);
+    else
+        write(fd, "0", 2);
+ 
+    close(fd);
+    return 0;
 }
 
+/****************************************************************
+ * gpio_get_value
+ ****************************************************************/
+int gpio_get_value(unsigned int gpio, unsigned int *value)
+{
+    int fd, len;
+    char buf[MAX_BUF];
+    char ch;
 
-/**
- * Initializee the Analog-Digital Converter
- */
-int adc_init() {
-	init();
+    len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", gpio);
+ 
+    fd = open(buf, O_RDONLY);
+    if (fd < 0) {
+        perror("gpio/get-value");
+        return fd;
+    }
+ 
+    read(fd, &ch, 1);
 
-	// enable the CM_WKUP_ADC_TSC_CLKCTRL with CM_WKUP_MODUELEMODE_ENABLE
-	map[(CM_WKUP_ADC_TSC_CLKCTRL-MMAP_OFFSET)/4] |= CM_WKUP_MODULEMODE_ENABLE;
-
-	// wait for the enable to complete
-	while(!(map[(CM_WKUP_ADC_TSC_CLKCTRL-MMAP_OFFSET)/4] & CM_WKUP_MODULEMODE_ENABLE)) {
-		// waiting for adc clock module to initialize
-		//printf("Waiting for CM_WKUP_ADC_TSC_CLKCTRL to enable with MODULEMODE_ENABLE\n");
-	}
-	// software reset, set bit 1 of sysconfig high?
-	// make sure STEPCONFIG write protect is off
-	map[(ADC_CTRL-MMAP_OFFSET)/4] |= ADC_STEPCONFIG_WRITE_PROTECT_OFF;
-
-	// set up each ADCSTEPCONFIG for each ain pin
-	map[(ADCSTEPCONFIG1-MMAP_OFFSET)/4] = 0x00<<19 | ADC_AVG16;
-	map[(ADCSTEPDELAY1-MMAP_OFFSET)/4]  = (0x0F)<<24;
-	map[(ADCSTEPCONFIG2-MMAP_OFFSET)/4] = 0x01<<19 | ADC_AVG16;
-	map[(ADCSTEPDELAY2-MMAP_OFFSET)/4]  = (0x0F)<<24;
-	map[(ADCSTEPCONFIG3-MMAP_OFFSET)/4] = 0x02<<19 | ADC_AVG16;
-	map[(ADCSTEPDELAY3-MMAP_OFFSET)/4]  = (0x0F)<<24;
-	map[(ADCSTEPCONFIG4-MMAP_OFFSET)/4] = 0x03<<19 | ADC_AVG16;
-	map[(ADCSTEPDELAY4-MMAP_OFFSET)/4]  = (0x0F)<<24;
-	map[(ADCSTEPCONFIG5-MMAP_OFFSET)/4] = 0x04<<19 | ADC_AVG16;
-	map[(ADCSTEPDELAY5-MMAP_OFFSET)/4]  = (0x0F)<<24;
-	map[(ADCSTEPCONFIG6-MMAP_OFFSET)/4] = 0x05<<19 | ADC_AVG16;
-	map[(ADCSTEPDELAY6-MMAP_OFFSET)/4]  = (0x0F)<<24;
-	map[(ADCSTEPCONFIG7-MMAP_OFFSET)/4] = 0x06<<19 | ADC_AVG16;
-	map[(ADCSTEPDELAY7-MMAP_OFFSET)/4]  = (0x0F)<<24;
-	map[(ADCSTEPCONFIG8-MMAP_OFFSET)/4] = 0x07<<19 | ADC_AVG16;
-	map[(ADCSTEPDELAY8-MMAP_OFFSET)/4]  = (0x0F)<<24;
-
-	// enable the ADC
-	map[(ADC_CTRL-MMAP_OFFSET)/4] |= 0x01;
-}
-
-/**
- * Read in from an analog pin
- *
- * @param p pin to read value from
- * @returns the analog value of pin p
- */
-int analogRead(PIN p) {
-	init();
-	
-	// the clock module is not enabled
-	if(map[(CM_WKUP_ADC_TSC_CLKCTRL-MMAP_OFFSET)/4] & CM_WKUP_IDLEST_DISABLED)
-		adc_init();
-	
-	// enable the step sequencer for this pin
-	map[(ADC_STEPENABLE-MMAP_OFFSET)/4] |= (0x01<<(p.bank_id+1));
-
-	// return the the FIFO0 data register
-	return map[(ADC_FIFO0DATA-MMAP_OFFSET)/4] & ADC_FIFO_MASK;
+    if (ch != '0') {
+        *value = 1;
+    } else {
+        *value = 0;
+    }
+ 
+    close(fd);
+    return 0;
 }
 
 
+/****************************************************************
+ * gpio_set_edge
+ ****************************************************************/
 
+int gpio_set_edge(unsigned int gpio, char *edge)
+{
+    int fd, len;
+    char buf[MAX_BUF];
 
+    len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/edge", gpio);
+ 
+    fd = open(buf, O_WRONLY);
+    if (fd < 0) {
+        perror("gpio/set-edge");
+        return fd;
+    }
+ 
+    write(fd, edge, strlen(edge) + 1); 
+    close(fd);
+    return 0;
+}
 
+/****************************************************************
+ * gpio_fd_open
+ ****************************************************************/
 
+int gpio_fd_open(unsigned int gpio)
+{
+    int fd, len;
+    char buf[MAX_BUF];
+
+    len = snprintf(buf, sizeof(buf), SYSFS_GPIO_DIR "/gpio%d/value", gpio);
+ 
+    fd = open(buf, O_RDONLY | O_NONBLOCK );
+    if (fd < 0) {
+        perror("gpio/fd_open");
+    }
+    return fd;
+}
+
+/****************************************************************
+ * gpio_fd_close
+ ****************************************************************/
+
+int gpio_fd_close(int fd)
+{
+    return close(fd);
+}

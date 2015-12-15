@@ -6,7 +6,5 @@
 
 #endif
 
-void setup();
-void init_encoder();
-void countLoop(float time);
-void rotary();
+void encode_setup();
+void encoder_init();

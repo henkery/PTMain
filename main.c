@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
 #include <sys/socket.h>
@@ -11,33 +12,51 @@
 #include <string.h>
 #include <signal.h>
 #include "encoder.h"
+#include "gpio.h"
 
 pthread_t th_sensor;
 pthread_t th_motor;
 mn_core_data data;
+int sock;
 
 void Segfault_Handler(int signo)
 {
-    fprintf(stderr,"Program terminated: Trying to shutdown motors\n");
-    //insert safety procedure here!
+    printf("Program crashed: Trying to shutdown motors\n");
+    remove("/tmp/socket");
+    gpio_unexport(39);
+    close(sock);
+    exit(0);
+}
+
+void Termfault_Handler(int signo)
+{
+    printf("Program terminated: Trying to shutdown motors\n");
+    remove("/tmp/socket");
+    gpio_unexport(66);
+    close(sock);
+    exit(0);
 }
 
 int main(int argc, char const *argv[])
 {
-	signal(SIGSEGV,Segfault_Handler);
+	signal(SIGINT ,Termfault_Handler);
+	signal(SIGSEGV ,Segfault_Handler);
 	int cl,rc;
-	int sock = socket(AF_LOCAL, SOCK_STREAM, 0);  // initialize domain socket
+	int yes = 1;
+	sock = socket(AF_LOCAL, SOCK_STREAM, 0);  // initialize domain socket
 	struct sockaddr_un addr;
 	memset(&addr, 0, sizeof(addr));
 	addr.sun_family = AF_UNIX;
 	strncpy(addr.sun_path, "/tmp/socket", sizeof(addr.sun_path)-1); //set socket address /tmp/socket
-	bind(sock, (struct sockaddr*)&addr, sizeof(addr)); //bind
+	setsockopt(sock,SOL_SOCKET,SO_REUSEADDR, &yes, sizeof(int));
+	if(bind(sock,(struct sockaddr*)&addr, sizeof(addr)) < 0){
+		perror("Socket already in use at /tmp/socket: ");
+	}
 	data.run = 1; // Set all threads to run
 	if (listen(sock, 5) == -1) { //listen to connections on the socket, exit if fails
 		return -1;
 	}
 
-	//init_encoder();
 	sns_sensor_run(&th_sensor, &data); //start other threads
 	//mtr_motor_run(&th_motor, &data);
 

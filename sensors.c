@@ -27,6 +27,8 @@ signed char gyro_orientation[9] = { 1, 0, 0,
 
 void *sns_sensor_loop(void* vd_data)
 {
+    encode_setup();
+    encoder_init();
     mn_core_data *data = (mn_core_data *)vd_data;
     write_address(MPU6050, 0x6B, 0x00, 0);
     sns_mpu_init(100, 42);
@@ -35,6 +37,7 @@ void *sns_sensor_loop(void* vd_data)
     /*int16_t ax,ay,az,gx,gy,gz;*/
 
     while (data->run) {
+        usleep(4000);
         if (mpu_read())
         {
             printf("Sensor is not ready\n");

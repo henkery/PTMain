@@ -1,32 +1,13 @@
-/**
- * @file gpio.h
- * @author Ethan Hayon
- *
- * This file contains the headers for gpio.c
- *
- * Licensed under the MIT License (MIT)
- * See MIT-LICENSE file for more information
- */
-
-#ifndef _GPIO_H_
-#define _GPIO_H_
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <stdint.h>
-#include <sys/mman.h>
-#include <fcntl.h>
-#include "am335x.h"
-
-#define HIGH (1)
-#define LOW  (0) 
-int init(); /*!< mmap /dev/mem into memory */
-int pinMode(PIN pin, unsigned char direction, unsigned char mux, unsigned char pull);
-int digitalWrite(PIN p, uint8_t mode);
-int digitalRead(PIN p);
-int analogRead(PIN p);
-
-#endif
+#ifndef gpio_H
+#define gpio_H
+ 
+int gpio_export(unsigned int gpio);
+int gpio_fd_close(int fd);
+int gpio_fd_open(unsigned int gpio);
+int gpio_get_value(unsigned int gpio, unsigned int *value);
+int gpio_set_dir(unsigned int gpio, unsigned int out_flag);
+int gpio_set_edge(unsigned int gpio, char *edge);
+int gpio_set_value(unsigned int gpio, unsigned int value);
+int gpio_unexport(unsigned int gpio);
+ 
+#endif /* gpio_H */
