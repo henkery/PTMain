@@ -5,16 +5,17 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
-#include <linux/i2c-dev.h>
 #include <fcntl.h>
 #include "header.h"
 #include "sensors.h"
-#include "mpudefines.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include "fmath.h"
+#include "i2c_functions.h"
+#include "mpudefines.h"
+#include "dmpdefines.h"
 
 int run;
 long rawQuat[4];
@@ -28,7 +29,7 @@ signed char gyro_orientation[9] = { 1, 0, 0,
 void *sns_sensor_loop(void* vd_data)
 {
     mn_core_data *data = (mn_core_data *)vd_data;
-    write_address(MPU6050, 0x6B, 0x00, 0);
+    i2c_write_address(MPU6050, 0x6B, 0x00, 0);
     sns_mpu_init(100, 42);
     data->selectbuf = 0;
     //sns_mpu_newinit();
@@ -73,10 +74,10 @@ char sns_mpu_init(int mpuRate, int lpf){
         return -1;f
     }*/
     // Reset device 
-    write_address(MPU6050, PWR_MGMT_1, 0x80, 1);
+    i2c_write_address(MPU6050, PWR_MGMT_1, 0x80, 1);
     usleep(100000);
     // Turn on device 
-    write_address(MPU6050, PWR_MGMT_1, 0x00, 1);
+    i2c_write_address(MPU6050, PWR_MGMT_1, 0x00, 1);
     // Set MPU init values
     /*chip_cfg.sensors = 0x78;
     chip_cfg.sample_rate = 0xFFFF;
@@ -89,13 +90,13 @@ char sns_mpu_init(int mpuRate, int lpf){
     chip_cfg.dmp_sample_rate = 0;*/
     // Set gyro fsr (2000 dps)
 
-    write_address(MPU6050, GYRO_CFG, 0x18, 1);
+    i2c_write_address(MPU6050, GYRO_CFG, 0x18, 1);
     
     // Set acc fsr (2g)
-    write_address(MPU6050, ACCEL_CFG, 0x00, 1);
+    i2c_write_address(MPU6050, ACCEL_CFG, 0x00, 1);
     
     // Set clock source (PLL) (sensors already enabled by default)
-    write_address(MPU6050, PWR_MGMT_1, 0x01, 1);
+    i2c_write_address(MPU6050, PWR_MGMT_1, 0x01, 1);
     usleep(50000);
     
     // Configure fifo
@@ -127,114 +128,6 @@ char sns_mpu_init(int mpuRate, int lpf){
     return 1;
 }
 
-void write_address(unsigned char device_addr, unsigned char register_addr, unsigned char val, char stop){
-    int file;
-    char *filename = "/dev/i2c-1";
-    if ((file = open(filename, O_RDWR)) < 0) {
-        printf("Failed to open device\n");
-        /* ERROR HANDLING: you can check errno to see what went wrong */
-        //perror("Failed to open the i2c bus");
-        //return 1;
-    }
-    int addr = device_addr;          // The I2C address of the MPU
-    if (ioctl(file, I2C_SLAVE, addr) < 0) {
-        printf("Failed to acquire bus access and/or talk to slave.\n");
-        /* ERROR HANDLING; you can check errno to see what went wrong */
-    }
-
-    uint8_t buffer[2];
-
-    buffer[0] = register_addr;
-    buffer[1] = val;
-
-    if (write(file, buffer, 2) != 2) {
-        printf("Can not write data. Address %d.\n", device_addr);
-    }
-    close(file);
-}
-
-char write_multiple_addresses(unsigned char device_addr, unsigned char start_addr, unsigned char val[], int amount_of_bytes){
-    int file;
-    char ret =0;
-    char *filename = "/dev/i2c-1";
-    if ((file = open(filename, O_RDWR)) < 0) {
-        printf("Failed to open device\n");
-        /* ERROR HANDLING: you can check errno to see what went wrong */
-        //perror("Failed to open the i2c bus");
-        //return 1;
-    }
-    int addr = device_addr;          // The I2C address of the MPU
-    if (ioctl(file, I2C_SLAVE, addr) < 0) {
-        printf("Failed to acquire bus access and/or talk to slave.\n");
-        /* ERROR HANDLING; you can check errno to see what went wrong */
-    }
-
-    uint8_t buffer[1+amount_of_bytes];
-
-    buffer[0] = start_addr;
-    memcpy(buffer+1, val, amount_of_bytes);
-
-    if (write(file, buffer, amount_of_bytes+1) != amount_of_bytes+1) {
-        ret = 1;
-        printf("Can not write data. Address %d.\n", device_addr);
-    }
-
-    /*unsigned char *p = &val[0];
-    if (write(file, val, amount_of_bytes) != amount_of_bytes) {
-        ret=1;
-        printf("Can not write data. Address %d.\n", device_addr);
-    }*/
-    close(file);
-    return ret;
-}
-
-void read_multiple_addresses(unsigned char device_addr, unsigned char start_addr, unsigned char val[], int amount_of_bytes){
-    int file;
-    char *filename = "/dev/i2c-1";
-    if ((file = open(filename, O_RDWR)) < 0) {
-        printf("Failed to open device\n");
-        /* ERROR HANDLING: you can check errno to see what went wrong */
-        //perror("Failed to open the i2c bus");
-        //return 1;
-    }
-    int addr = device_addr;          // The I2C address of the MPU
-    if (ioctl(file, I2C_SLAVE, addr) < 0) {
-        printf("Failed to acquire bus access and/or talk to slave.\n");
-        /* ERROR HANDLING; you can check errno to see what went wrong */
-    }
-
-    uint8_t buffer[1];
-
-    buffer[0] = start_addr;
-
-    if (write(file, buffer, 1) != 1) {
-        printf("Can not write data. Address %d.\n", device_addr);
-    }
-
-    close(file);
-
-    if ((file = open(filename, O_RDWR)) < 0) {
-        printf("Failed to open device\n");
-        /* ERROR HANDLING: you can check errno to see what went wrong */
-        //perror("Failed to open the i2c bus");
-        //return 1;
-    }
-    addr = device_addr;          // The I2C address of the MPU + 1
-    if (ioctl(file, I2C_SLAVE, addr) < 0) {
-        printf("Failed to acquire bus access and/or talk to slave.\n");
-        /* ERROR HANDLING; you can check errno to see what went wrong */
-    }
-
-    unsigned char *p = &val[0];
-    if (read(file, val, amount_of_bytes) != amount_of_bytes) {
-        printf("Can not read data. Address %d.\n", device_addr);
-    }
-    //*p = read_byte(1);
-    close(file);
-}
-
-
-
 int dmp_set_orientation(unsigned short orient){
     unsigned char gyro_regs[3], accel_regs[3];
     const unsigned char gyro_axes[3]  = {0x4C, 0xCD, 0x6C};
@@ -250,9 +143,9 @@ int dmp_set_orientation(unsigned short orient){
     accel_regs[2] = accel_axes[(orient >> 6) & 3];
 
     /* Chip-to-body, axes only. */
-    if (write_mem(FCFG_1, 3, gyro_regs))
+    if (i2c_write_mem(FCFG_1, 3, gyro_regs))
         return -1;
-    if (write_mem(FCFG_2, 3, accel_regs))
+    if (i2c_write_mem(FCFG_2, 3, accel_regs))
         return -1;
 
     memcpy(gyro_regs, gyro_sign, 3);
@@ -271,9 +164,9 @@ int dmp_set_orientation(unsigned short orient){
     }
 
     /* Chip-to-body, sign only. */
-    if (write_mem(FCFG_3, 3, gyro_regs))
+    if (i2c_write_mem(FCFG_3, 3, gyro_regs))
         return -1;
-    if (write_mem(FCFG_7, 3, accel_regs))
+    if (i2c_write_mem(FCFG_7, 3, accel_regs))
         return -1;
     return 0;
 }
@@ -326,7 +219,7 @@ int dmp_enable_features(unsigned short mask){
     tmp[1] = (unsigned char)((GYRO_SF >> 16) & 0xFF);
     tmp[2] = (unsigned char)((GYRO_SF >> 8) & 0xFF);
     tmp[3] = (unsigned char)(GYRO_SF & 0xFF);
-    write_mem(104, 4, tmp);
+    i2c_write_mem(104, 4, tmp);
     for (char count = 0; count < 10; count++){
         tmp[count] = 0xA3;
     }
@@ -353,7 +246,7 @@ int dmp_enable_features(unsigned short mask){
     tmp[7] = 0xA3;
     tmp[8] = 0xA3;
     tmp[9] = 0xA3;
-    write_mem(2727,10,tmp);
+    i2c_write_mem(2727,10,tmp);
 
     // Send gesture data to the FIFO. 
     if (mask & (0x003))
@@ -361,7 +254,7 @@ int dmp_enable_features(unsigned short mask){
     else{
         tmp[0] = 0xD8;
     }
-    write_mem(2742,1,tmp);
+    i2c_write_mem(2742,1,tmp);
 
     if (mask & 0x020)
         enable_gyro_cal(1);
@@ -380,7 +273,7 @@ int dmp_enable_features(unsigned short mask){
             tmp[2] = 0xC2;
             tmp[3] = 0x90;
         }
-        write_mem(2722, 4, tmp);
+        i2c_write_mem(2722, 4, tmp);
     }
 
     if (mask & 0x004){
@@ -398,56 +291,15 @@ int dmp_enable_features(unsigned short mask){
     return 0;
 }
 
-int write_mem(unsigned short mem_addr, unsigned short length, uint8_t *data)
-{
-    unsigned char tmp[2];
-
-    if (!data)
-        return -1;
-    //if (!chip_cfg.sensors)
-    //    return -2;
-
-    tmp[0] = (unsigned char)(mem_addr >> 8);
-    tmp[1] = (unsigned char)(mem_addr & 0xFF);
-
-    /* Check bank boundaries. */
-    if (tmp[1] + length > BANK_SIZE)
-        return -3;
-    if (write_multiple_addresses(MPU6050, BANK_SEL, tmp, 2))
-        return 1;
-    if (write_multiple_addresses(MPU6050, MEM_RW, data, length))
-        return 1;
-    return 0;
-}
-
-int read_mem(unsigned short mem_addr, unsigned short length, uint8_t *data)
-{
-    unsigned char tmp[2];
-
-    if (!data)
-        return -1;
-    //if (!chip_cfg.sensors)
-    //    return -2; TODO fix this
-
-    tmp[0] = (unsigned char)(mem_addr >> 8);
-    tmp[1] = (unsigned char)(mem_addr & 0xFF);
-
-    /* Check bank boundaries. */
-    if (tmp[1] + length > BANK_SIZE)
-        return -3;
-    write_multiple_addresses(MPU6050, BANK_SEL, tmp, 2);
-    read_multiple_addresses(MPU6050, MEM_RW, data, length);
-    return 0;
-}
 
 int enable_gyro_cal(unsigned char enable)
 {
     if (enable) {
         unsigned char regs[9] = {0xb8, 0xaa, 0xb3, 0x8d, 0xb4, 0x98, 0x0d, 0x35, 0x5d};
-        return write_mem(1208, 9, regs);
+        return i2c_write_mem(1208, 9, regs);
         } else {
         unsigned char regs[9] = {0xb8, 0xaa, 0xaa, 0xaa, 0xb0, 0x88, 0xc3, 0xc5, 0xc7};
-        return write_mem(1208, 9, regs);
+        return i2c_write_mem(1208, 9, regs);
     }
 }
 
@@ -458,40 +310,40 @@ int reset_fifo(void){
     //return -1;
 
     data = 0;
-    write_address(MPU6050, INT_ENABLE, data, 1);
-    write_address(MPU6050, FIFO_EN, data, 1);
-    write_address(MPU6050, USER_CTRL, data, 1);
+    i2c_write_address(MPU6050, INT_ENABLE, data, 1);
+    i2c_write_address(MPU6050, FIFO_EN, data, 1);
+    i2c_write_address(MPU6050, USER_CTRL, data, 1);
 
     if (1) { //assume truth TODO fix
         data = 0x04 | 0x08;
-        write_address(MPU6050, USER_CTRL, data, 1);
+        i2c_write_address(MPU6050, USER_CTRL, data, 1);
         usleep(50000);
         data = 0x80 | 0x40;
         if (1) //chip_cfg.sensors & 0x01
             data |= 0x20;
-        write_address(MPU6050, USER_CTRL, data, 1);
+        i2c_write_address(MPU6050, USER_CTRL, data, 1);
         if (1) //chip_cfg.int_enable
             data = 0x02;
         else
             data = 0;
-        write_address(MPU6050, INT_ENABLE, data, 1);
+        i2c_write_address(MPU6050, INT_ENABLE, data, 1);
         data = 0;
-        write_address(MPU6050, FIFO_EN, data, 1);
+        i2c_write_address(MPU6050, FIFO_EN, data, 1);
     } else {
         data = 0x04;
-        write_address(MPU6050, USER_CTRL, data, 1);
+        i2c_write_address(MPU6050, USER_CTRL, data, 1);
         if (0) //chip_cfg.bypass_mode || !(chip_cfg.sensors & 0x01)
             data = 0x40;
         else
             data = 0x04 | 0x20;
-        write_address(MPU6050, USER_CTRL, data, 1);
+        i2c_write_address(MPU6050, USER_CTRL, data, 1);
         usleep(50000);
         if (1) //chip_cfg.int_enable
             data = 0x01;
         else
             data = 0;
-        write_address(MPU6050, INT_ENABLE, data, 1);
-        write_address(MPU6050, FIFO_EN, 1, 1); //chip_cfg.fifo_enable
+        i2c_write_address(MPU6050, INT_ENABLE, data, 1);
+        i2c_write_address(MPU6050, FIFO_EN, 1, 1); //chip_cfg.fifo_enable
     }
     return 0;
 }
@@ -507,7 +359,7 @@ int enable_lp_quat(unsigned char enable)
     }
     else
     memset(regs, 0x8B, 4);
-    write_mem(2712, 4, regs);
+    i2c_write_mem(2712, 4, regs);
 
     return reset_fifo();
 }
@@ -537,14 +389,14 @@ int load_firmware(unsigned short length, const unsigned char *firmware,
         for (int progIndex = 0; progIndex < this_write; progIndex++)
         progBuffer[progIndex] = firmware[ii + progIndex];
         
-        if ((errCode = write_mem(ii, this_write, progBuffer))) {
+        if ((errCode = i2c_write_mem(ii, this_write, progBuffer))) {
             //Serial.print("firmware write failed: ");
             //Serial.println(errCode);
             printf("Firmware write failed\n");
             return -3;
         }
         
-        if (read_mem(ii, this_write, cur))
+        if (i2c_read_mem(ii, this_write, cur))
             return -4;
         
         if (memcmp(progBuffer, cur, this_write)) {
@@ -568,7 +420,7 @@ int load_firmware(unsigned short length, const unsigned char *firmware,
     /* Set program start address. */
     tmp[0] = start_addr >> 8;
     tmp[1] = start_addr & 0xFF;
-    write_multiple_addresses(MPU6050, 0x70, tmp, 2);
+    i2c_write_multiple_addresses(MPU6050, 0x70, tmp, 2);
     printf("Firmware loaded\n");
 
     //chip_cfg.dmp_loaded = 1;
@@ -589,7 +441,7 @@ int enable_6x_lp_quat(unsigned char enable)
     } else
     memset(regs, 0xA3, 4);
 
-    write_mem(2718, 4, regs);
+    i2c_write_mem(2718, 4, regs);
 
     return reset_fifo();
 }
@@ -607,9 +459,9 @@ int set_fifo_rate(unsigned short rate){
     div = DMP_SAMPLE_RATE / rate - 1;
     tmp[0] = (unsigned char)((div >> 8) & 0xFF);
     tmp[1] = (unsigned char)(div & 0xFF);
-    if (write_mem(534, 2, tmp))
+    if (i2c_write_mem(534, 2, tmp))
         return -1;
-    if (write_mem(2753, 12, (unsigned char*)regs_end))
+    if (i2c_write_mem(2753, 12, (unsigned char*)regs_end))
         return -1;
     return 0;
 }
@@ -633,7 +485,7 @@ int set_lpf(unsigned short lpf)
     else
         data = 6;
 
-    write_address(MPU6050, LPF, data, 1);
+    i2c_write_address(MPU6050, LPF, data, 1);
     return 0;
 }
 
@@ -652,7 +504,7 @@ int set_dmp_state(unsigned char enable)
         //set_sample_rate(chip_cfg.dmp_sample_rate);
         // Remove FIFO elements. 
         tmp = 0;
-        write_address(MPU6050, 0x23, tmp, 1);
+        i2c_write_address(MPU6050, 0x23, tmp, 1);
         //chip_cfg.dmp_on = 1;
         // Enable DMP interrupt. 
         set_int_enable(1);
@@ -662,7 +514,7 @@ int set_dmp_state(unsigned char enable)
         set_int_enable(0);
         // Restore FIFO settings. 
         //tmp = chip_cfg.fifo_enable;
-        write_address(MPU6050, 0x23, 1, 1);
+        i2c_write_address(MPU6050, 0x23, 1, 1);
         //chip_cfg.dmp_on = 0;
         reset_fifo();
     }
@@ -677,7 +529,7 @@ int set_int_enable(unsigned char enable){
             tmp = 0x02;
         else
             tmp = 0x00;
-        write_address(MPU6050, INT_ENABLE, tmp, 1);
+        i2c_write_address(MPU6050, INT_ENABLE, tmp, 1);
         //chip_cfg.int_enable = tmp;
     } else {
         if (0) //!chip_cfg.sensors
@@ -688,7 +540,7 @@ int set_int_enable(unsigned char enable){
             tmp = 0x01;
         else
             tmp = 0x00;
-        write_address(MPU6050, INT_ENABLE, tmp, 1);
+        i2c_write_address(MPU6050, INT_ENABLE, tmp, 1);
         //chip_cfg.int_enable = tmp;
     }
     return 0;
@@ -710,58 +562,12 @@ int set_sample_rate(unsigned short rate)
             rate = 1000;
 
         data = 1000 / rate - 1;
-        write_address(MPU6050, RATE_DIV, data, 1);
+        i2c_write_address(MPU6050, RATE_DIV, data, 1);
 
         //chip_cfg.sample_rate = 1000 / (1 + data);
         return 0;
     }
 }
-
-unsigned char read_address(unsigned char device_addr, unsigned char register_addr, char stop){
-    int file;
-    char *filename = "/dev/i2c-1";
-    if ((file = open(filename, O_RDWR)) < 0) {
-        printf("Failed to open device\n");
-        /* ERROR HANDLING: you can check errno to see what went wrong */
-        //perror("Failed to open the i2c bus");
-        //return 1;
-    }
-    int addr = device_addr;          // The I2C address of the MPU
-    if (ioctl(file, I2C_SLAVE, addr) < 0) {
-        printf("Failed to acquire bus access and/or talk to slave.\n");
-        /* ERROR HANDLING; you can check errno to see what went wrong */
-    }
-
-    uint8_t buffer[1];
-
-    buffer[0] = register_addr;
-
-    if (write(file, buffer, 1) != 1) {
-        printf("Can not write data. Address %d.\n", device_addr);
-    }
-
-    close(file);
-
-    if ((file = open(filename, O_RDWR)) < 0) {
-        printf("Failed to open device\n");
-        /* ERROR HANDLING: you can check errno to see what went wrong */
-        //perror("Failed to open the i2c bus");
-        //return 1;
-    }
-    addr = device_addr;          // The I2C address of the MPU + 1
-    if (ioctl(file, I2C_SLAVE, addr) < 0) {
-        printf("Failed to acquire bus access and/or talk to slave.\n");
-        /* ERROR HANDLING; you can check errno to see what went wrong */
-    }
-
-    unsigned char p;
-    if (read(file, &p, 1) != 1) {
-        printf("Can not read data. Address %d.\n", device_addr);
-    }
-    close(file);
-    return p;
-}
-
 
 char mpu_read(){
     short intStatus;
@@ -775,7 +581,7 @@ char mpu_read(){
     if (!chip_cfg.dmp_on)
         return false;*/
         
-    read_multiple_addresses(MPU6050, DMP_INT_STATUS, tmp, 2);
+    i2c_read_multiple_addresses(MPU6050, DMP_INT_STATUS, tmp, 2);
     intStatus = (tmp[0] << 8) | tmp[1];
     
     // check int status
@@ -801,20 +607,20 @@ int mpu_read_fifo(){
     // Get a packet
     unsigned char tmp[2];
     unsigned short fifo_count;
-    read_multiple_addresses(MPU6050, FIFO_COUNT_H, tmp, 2);
+    i2c_read_multiple_addresses(MPU6050, FIFO_COUNT_H, tmp, 2);
     fifo_count = (tmp[0] << 8) | tmp[1];
     if (fifo_count < PACKET_LENGTH) {
         return -1;
     }
     if (fifo_count > (MAX_FIFO >> 1)) {
         // check overflow
-        tmp[0] = read_address(MPU6050, INT_STATUS, 1);
+        tmp[0] = i2c_read_address(MPU6050, INT_STATUS, 1);
         if (tmp[0] & 0x10) {
             reset_fifo();
             return -2;
         }
     }
-    read_multiple_addresses(MPU6050, FIFO_RW, fifo_data, PACKET_LENGTH);
+    i2c_read_multiple_addresses(MPU6050, FIFO_RW, fifo_data, PACKET_LENGTH);
 
     rawQuat[0] = ((long)fifo_data[0] << 24) | ((long)fifo_data[1] << 16) |
         ((long)fifo_data[2] << 8) | fifo_data[3];
@@ -826,72 +632,6 @@ int mpu_read_fifo(){
         ((long)fifo_data[14] << 8) | fifo_data[15];
     
     return 0;
-}
-
-void writeBits(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t data, int length, int startBit) {
-    int8_t temp = read_address(DEV_ADD, DATA_REGADD, 0);
-    uint8_t bits = 1;
-    uint8_t i = 0;
-
-    while (i < length - 1) {
-        bits = (bits << 1);
-        ++bits;
-        ++i;
-    }
-
-    temp &= ~(bits << startBit);
-
-    temp |= (data << startBit);
-
-    write_address(DEV_ADD, DATA_REGADD, temp, 0);
-
-}
-
-void writeBit(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t data, int bitNum) {
-    int8_t temp = read_address(DEV_ADD, DATA_REGADD, 0);
-    if (data == 0) {
-        temp = temp & ~(1 << bitNum);
-    } else if (data == 1) {
-        temp = temp | (1 << bitNum);
-    } else {
-        printf("Value must be 0 or 1! --> Address %d.\n", DEV_ADD);
-        exit(1);
-    }
-
-    write_address(DEV_ADD, DATA_REGADD, temp, 0);
-
-}
-
-void readByteBuffer(uint8_t DEV_ADD, uint8_t DATA_REGADD, uint8_t *data, uint8_t length) {
-
-    int file;
-    char *filename = "/dev/i2c-1";
-
-    if ((file = open(filename, O_RDWR)) < 0) {
-        printf("%s do not open. Address %d.\n", filename, DEV_ADD);
-        exit(1);
-    }
-
-    if (ioctl(file, I2C_SLAVE, DEV_ADD) < 0) {
-        printf("Can not join I2C Bus. Address %d.\n", DEV_ADD);
-        exit(1);
-    }
-
-    uint8_t buffer[1];
-    buffer[0] = DATA_REGADD;
-
-    if (write(file, buffer, 1) != 1) {
-        printf("Can not write data. Address %d.\n", DEV_ADD);
-        exit(1);
-    }
-
-    if (read(file, data, length) != length) {
-        printf("Can not read data. Address %d.\n", DEV_ADD);
-        exit(1);
-    }
-
-    close(file);
-
 }
 
 void converse_fixed_quat_to_euler(float q[], float v[]){
