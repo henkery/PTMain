@@ -32,10 +32,10 @@ void *sns_sensor_loop(void* vd_data)
     mn_core_data *data = (mn_core_data *)vd_data;
     write_address(MPU6050, 0x6B, 0x00, 0);
     sns_mpu_init(100, 42);
+    data->selectbuf = 0;
     //sns_mpu_newinit();
     
     /*int16_t ax,ay,az,gx,gy,gz;*/
-
     while (data->run) {
         usleep(4000);
         if (mpu_read())
@@ -45,7 +45,18 @@ void *sns_sensor_loop(void* vd_data)
         else
         {
             mpu_calculate_angles_2();
-            mpu_print_angles(dmpEuler);
+            if (!data->selectbuf)
+            {
+                data->selectbuf =1;
+                data->buf_angle_1 = dmpEuler[1]; //not sure if this is the right angle
+            }
+            else
+            {
+                data->selectbuf = 0;
+                data->buf_angle_2 = dmpEuler[1];
+            }
+            //mpu_print_angles(dmpEuler);
+
         }
     }
     return 0;

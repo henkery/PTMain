@@ -5,7 +5,9 @@
 struct st_core_data
 {
 	int run;
-	pthread_mutex_t mu_data_lock;
+	char selectbuf;
+	float buf_angle_1;
+	float buf_angle_2;
 };
 
 typedef struct st_core_data mn_core_data ;
