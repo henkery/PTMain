@@ -5,9 +5,9 @@
 #include <stdlib.h>
 #include "balance.h"
 
-int prevgyro = 0;
+float prevgyro = 0;
 
-void bal_balance(int gyroangle, uint8_t motorspeed, uint8_t* newmotorspeed)
+void bal_balance(float gyroangle, uint8_t motorspeed, uint8_t* newmotorspeed)
 {
   int gyrospeed;
 
@@ -25,6 +25,7 @@ void bal_balance(int gyroangle, uint8_t motorspeed, uint8_t* newmotorspeed)
 
   while(1) {
      power = (gyrospeed + 8.0 * gyroangle)/0.8 + 0.1 * motorspeed; // power = (gyroSpeed + 8.0 * gyroAngle)/0.8 + 0.05 * motorPos + 0.1 * motorSpeed; removed motorspos
+     printf("Setting power to %d\n", power);
 
      if (abs(power) < 100)
        tMotorPosOK = clock();
