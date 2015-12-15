@@ -5,9 +5,9 @@
 #include <stdlib.h>
 #include "balance.h"
 
-int prevgyro = 0;
+float prevgyro = 0;
 
-void bal_balance(int gyroangle, uint8_t motorspeed, uint8_t* newmotorspeed)
+void bal_balance(float gyroangle, uint8_t motorspeed, uint8_t* newmotorspeed)
 {
   int gyrospeed;
 
