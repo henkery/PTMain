@@ -23,7 +23,6 @@ void bal_balance(float gyroangle, uint8_t motorspeed, uint8_t* newmotorspeed)
 
   tMotorPosOK = clock();
 
-  while(1) {
      power = (gyrospeed + 8.0 * gyroangle)/0.8 + 0.1 * motorspeed; // power = (gyroSpeed + 8.0 * gyroAngle)/0.8 + 0.05 * motorPos + 0.1 * motorSpeed; removed motorspos
      printf("Setting power to %d\n", power);
 
@@ -42,7 +41,6 @@ void bal_balance(float gyroangle, uint8_t motorspeed, uint8_t* newmotorspeed)
        break;
      }
      usleep(200); //TODO consider if this delay is neccesary
-  }
   //TODO stop motors
   //TODO inform system of critical failure (fell down)
 }
