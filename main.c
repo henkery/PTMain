@@ -52,6 +52,7 @@ int main(int argc, char const *argv[])
 	if(bind(sock,(struct sockaddr*)&addr, sizeof(addr)) < 0){
 		perror("Socket already in use at /tmp/socket: ");
 	}
+	chmod(addr.sun_path, 0775);
 	data.run = 1; // Set all threads to run
 	if (listen(sock, 5) == -1) { //listen to connections on the socket, exit if fails
 		return -1;

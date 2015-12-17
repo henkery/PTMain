@@ -4,6 +4,7 @@
 #include "header.h"
 #include "sensors.h"
 #include <stdio.h>
+#include "gpio.h"
 #include "mpudefines.h"
 #include "dmpdefines.h"
 #include "dmp.h"
@@ -17,15 +18,27 @@ signed char gyro_orientation[9] = { 1, 0, 0,
 
 void *sns_sensor_loop(void* vd_data)
 {
+    unsigned int but_pin = 86;
+    gpio_export(but_pin);
+    gpio_set_dir(but_pin, 0);
+    gpio_set_edge(but_pin, "rising");
     mn_core_data *data = (mn_core_data *)vd_data;
     i2c_write_address(MPU6050, 0x6B, 0x00, 0);
     sns_mpu_init(100, 42);
+    unsigned int but_pin_val = 0;
     data->selectbuf = 0;
     int motorspeed = 0;
     //sns_mpu_newinit();
     
     /*int16_t ax,ay,az,gx,gy,gz;*/
     while (data->run) {
+        gpio_get_value(but_pin, &but_pin_val);
+        if (but_pin_val)
+        {
+            printf("killswitch hit, aborting run\n");
+            motors_forward(0);
+            break;
+        }
         if (mpu_read())
         {
             //printf("Sensor is not ready\n");
