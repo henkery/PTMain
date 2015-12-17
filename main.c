@@ -58,6 +58,7 @@ int main(int argc, char const *argv[])
 	}
 
     //encoder_init();
+	printf("SYSTEM CALLED\n");
 
 	sns_sensor_run(&th_sensor, &data); //start other threads
 	//mtr_motor_run(&th_motor, &data);
