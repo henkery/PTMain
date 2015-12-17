@@ -36,7 +36,6 @@ void *sns_sensor_loop(void* vd_data)
             printf("%f, %f, %f,\n", dmpEuler[0], dmpEuler[1], dmpEuler[2]);
             float* s = &dmpEuler[0];
             bal_balance(s, motorspeed, &motorspeed);
-            printf("NA BALANCE VOOR MOTORSET\n");
             uint8_t speed = 0;
             if (motorspeed>=0) {
                 speed = motorspeed;

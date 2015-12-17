@@ -7,9 +7,15 @@
 
 float prevgyro = 0;
 
-void bal_balance(float gyroangle, int motorspeed, int* newmotorspeed)
+void bal_balance(float* gyroangles, int motorspeed, int* newmotorspeed)
 {
+  float gyroangle = *gyroangles;
   float gyrospeed;
+
+  if(gyroangle >= 1.1 || gyroangle <= -1.1){
+    printf("TE HOGE WAARDE RETURNING\n");
+    return;
+  }
 
   int power;
   clock_t tMotorPosOK;
@@ -22,16 +28,13 @@ void bal_balance(float gyroangle, int motorspeed, int* newmotorspeed)
   gyrospeed = gyroangle - prevgyro;
   
   if (gyrospeed > 1.0) {
-    printf("gyrospeed too fast!\n");
     return;
   }
   prevgyro = gyroangle;
 
 
   tMotorPosOK = clock();
-     printf("generating power based on a gyrospeed of %f a gyroangle of %f and a motorspeed of %d\n", gyrospeed, gyroangle, motorspeed);
-     power = (gyrospeed + 18.2 * gyroangle)/0.8 +0.1 * motorspeed; // power = (gyroSpeed + 8.0 * gyroAngle)/0.8 + 0.05 * motorPos + 0.1 * motorSpeed; removed motorspos
-     printf("Setting power to %d\n", power);
+     power = (gyrospeed + 91* gyroangle)/0.4 + 0.1 * motorspeed; // power = (gyroSpeed + 8.0 * gyroAngle)/0.8 + 0.05 * motorPos + 0.1 * motorSpeed; removed motorspos
 
      if (abs(power) < 100)
        tMotorPosOK = clock();
@@ -41,8 +44,7 @@ void bal_balance(float gyroangle, int motorspeed, int* newmotorspeed)
        *newmotorspeed = -126;
      else
        *newmotorspeed = power;
-    //TODO power motors 
-     printf("set motors to %d\n", *newmotorspeed);
+    //TODO power motors
 
   //TODO stop motors
   //TODO inform system of critical failure (fell down)
