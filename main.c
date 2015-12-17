@@ -60,7 +60,7 @@ int main(int argc, char const *argv[])
     //encoder_init();
 
 	sns_sensor_run(&th_sensor, &data); //start other threads
-	mtr_motor_run(&th_motor, &data);
+	//mtr_motor_run(&th_motor, &data);
 
 	char connected = 0;
 	while (data.run) {

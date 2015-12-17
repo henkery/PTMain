@@ -8,6 +8,7 @@
 #include "dmpdefines.h"
 #include "dmp.h"
 #include "mpu.h"
+#include "motors.h"
 
 int run;
 signed char gyro_orientation[9] = { 1, 0, 0,
@@ -20,19 +21,33 @@ void *sns_sensor_loop(void* vd_data)
     i2c_write_address(MPU6050, 0x6B, 0x00, 0);
     sns_mpu_init(100, 42);
     data->selectbuf = 0;
+    int motorspeed = 0;
     //sns_mpu_newinit();
     
     /*int16_t ax,ay,az,gx,gy,gz;*/
     while (data->run) {
-        usleep(4000);
         if (mpu_read())
         {
-            printf("Sensor is not ready\n");
+            //printf("Sensor is not ready\n");
         }
         else
         {
             mpu_calculate_angles_2();
-            if (!data->selectbuf)
+            printf("%f, %f, %f,\n", dmpEuler[0], dmpEuler[1], dmpEuler[2]);
+            float* s = &dmpEuler[0];
+            bal_balance(s, motorspeed, &motorspeed);
+            printf("NA BALANCE VOOR MOTORSET\n");
+            uint8_t speed = 0;
+            if (motorspeed>=0) {
+                speed = motorspeed;
+                motors_forward(speed);
+            }
+            else {
+                speed = motorspeed*-1;
+                motors_reverse(speed);
+            }
+            printf("MOTORS SET AT %d\n", motorspeed);
+            /*if (!data->selectbuf)
             {
                 data->selectbuf =1;
                 data->buf_angle_1 = dmpEuler[1]; //not sure if this is the right angle
@@ -41,7 +56,7 @@ void *sns_sensor_loop(void* vd_data)
             {
                 data->selectbuf = 0;
                 data->buf_angle_2 = dmpEuler[1];
-            }
+            }*/
             //mpu_print_angles(dmpEuler);
 
         }
