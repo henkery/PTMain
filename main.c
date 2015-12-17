@@ -86,7 +86,7 @@ int main(int argc, char const *argv[])
 					}
 					else {
 						char buff[8];
-						int c = 12;
+						int c = data.buf_speed_1;
 						int d = 44;
 						memcpy(buff, &c, 4);
 						memcpy(buff+4, &d, 4);

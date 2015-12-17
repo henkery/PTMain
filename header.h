@@ -6,6 +6,7 @@ struct st_core_data
 {
 	int run;
 	char selectbuf;
+	int buf_speed_1;
 	float buf_angle_1;
 	float buf_angle_2;
 };

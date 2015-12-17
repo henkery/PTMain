@@ -37,6 +37,7 @@ void *sns_sensor_loop(void* vd_data)
             float* s = &dmpEuler[0];
             bal_balance(s, motorspeed, &motorspeed);
             uint8_t speed = 0;
+            data->buf_speed_1 = motorspeed;
             if (motorspeed>=0) {
                 speed = motorspeed;
                 motors_forward(speed);
