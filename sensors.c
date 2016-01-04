@@ -53,11 +53,11 @@ void *sns_sensor_loop(void* vd_data)
             data->buf_speed_1 = motorspeed;
             if (motorspeed>=0) {
                 speed = motorspeed;
-                motors_forward(speed);
+                //motors_forward(speed);
             }
             else {
                 speed = motorspeed*-1;
-                motors_reverse(speed);
+                //motors_reverse(speed);
             }
             printf("MOTORS SET AT %d\n", motorspeed);
             /*if (!data->selectbuf)

@@ -122,7 +122,16 @@ char mpu_read(){
         //Serial.println(errCode);
         return 1;
     }
-    rawaccel = i2c_read_address(MPU6050, RAW_ACCEL, 1);
+    uint16_t smallInt = 0;
+    i2c_read_multiple_addresses(MPU6050, 0x43, &smallInt, 2);
+    const int negative = (smallInt & (1 << 15)) != 0;
+
+    if (negative)
+      rawaccel = smallInt | ~((1 << 16) - 1);
+    else
+      rawaccel = smallInt;
+    rawaccel = rawaccel/131;
+
     
     return 0;
 }

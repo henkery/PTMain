@@ -22,6 +22,7 @@ int sock;
 void Segfault_Handler(int signo)
 {
     printf("Program crashed: Trying to shutdown motors\n");
+    motors_forward(0);
     remove("/tmp/socket");
     gpio_unexport(39);
     close(sock);
@@ -31,6 +32,7 @@ void Segfault_Handler(int signo)
 void Termfault_Handler(int signo)
 {
     printf("Program terminated: Trying to shutdown motors\n");
+    motors_forward(0);
     remove("/tmp/socket");
     gpio_unexport(66);
     close(sock);

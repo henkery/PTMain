@@ -2,7 +2,7 @@
 #define MPU_H
 
 float dmpEuler[3];
-uint8_t rawaccel;
+int rawaccel;
 
 
 int mpu_set_fifo_rate(unsigned short rate);
