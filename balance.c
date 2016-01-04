@@ -5,14 +5,17 @@
 #include <stdlib.h>
 #include "balance.h"
 
-float prevgyro = 0;
 
-void bal_balance(float* gyroangles, int motorspeed, int* newmotorspeed)
+void bal_balance(float* gyroangles, int motorspeed, int* newmotorspeed, unsigned char* gyrospeeds)
 {
   float gyroangle = *gyroangles;
+<<<<<<< HEAD
   gyroangle = gyroangle;
   printf("gyroangle: %f\n", gyroangle);
   float gyrospeed;
+=======
+  unsigned char gyrospeed = *gyrospeeds;
+>>>>>>> 20faf1bd2e76f745b5159c87c72798391f0078ad
 
   if(gyroangle >= 1.1 || gyroangle <= -1.1){
     printf("TE HOGE WAARDE RETURNING\n");
@@ -21,19 +24,6 @@ void bal_balance(float* gyroangles, int motorspeed, int* newmotorspeed)
 
   int power;
   clock_t tMotorPosOK;
-  if (prevgyro == 0) //drop first data in favor calculating speed
-  {
-    prevgyro = gyroangle;
-    return;
-  }
-  
-  gyrospeed = gyroangle - prevgyro;
-  
-  if (gyrospeed > 1.0) {
-    return;
-  }
-  prevgyro = gyroangle;
-
 
     tMotorPosOK = clock();
     power = (gyrospeed + 91 * gyroangle)/0.5 + 0.1 * motorspeed; // power = (gyroSpeed + 8.0 * gyroAngle)/0.8 + 0.05 * motorPos + 0.1 * motorSpeed; removed motorspos

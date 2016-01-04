@@ -122,6 +122,7 @@ char mpu_read(){
         //Serial.println(errCode);
         return 1;
     }
+    rawaccel = i2c_read_address(MPU6050, RAW_ACCEL, 1);
     
     return 0;
 }
