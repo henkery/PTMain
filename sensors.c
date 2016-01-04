@@ -46,7 +46,7 @@ void *sns_sensor_loop(void* vd_data)
         else
         {
             mpu_calculate_angles_2();
-            printf("%f, %f, %f,\n", dmpEuler[0], dmpEuler[1], dmpEuler[2]);
+            //printf("%f, %f, %f,\n", dmpEuler[0], dmpEuler[1], dmpEuler[2]);
             float* s = &dmpEuler[0];
             bal_balance(s, motorspeed, &motorspeed);
             uint8_t speed = 0;
