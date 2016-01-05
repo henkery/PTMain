@@ -4,23 +4,27 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "balance.h"
+#include "mpudefines.h"
 
 
-void bal_balance(float* gyroangles, int motorspeed, int* newmotorspeed, int* gyrospeeds)
+void bal_balance(float* gyroangles, int motorspeed, int* newmotorspeed, int* gyrospeeds) 
 {
   float gyroangle = *gyroangles;
   int gyrospeed = *gyrospeeds;
+  gyrospeed += 21.8;
 
   if(gyroangle >= 1.1 || gyroangle <= -1.1){
     return;
   }
 
+  gyroangle = gyroangle * (180.0 / M_PI);
+
   int power;
   clock_t tMotorPosOK;
 
     tMotorPosOK = clock();
-    power = (gyrospeed + 91 * gyroangle)/0.5 + 0.1 * motorspeed; // power = (gyroSpeed + 8.0 * gyroAngle)/0.8 + 0.05 * motorPos + 0.1 * motorSpeed; removed motorspos
-    printf("in de formule: Gyrospeed: %d GyroAngle: %f Motorspeed:%d Geeft power: %d\n", gyrospeed, gyroangle, motorspeed, power);
+    power = 0.3 * gyrospeed + 5.3 * gyroangle + 0.1 * motorspeed; // power = (gyroSpeed + 8.0 * gyroAngle)/0.8 + 0.05 * motorPos + 0.1 * motorSpeed; removed motorspos
+      printf("gyrospeed: %d gyroangle: %f motorspeed: %d power: %d\n", gyrospeed, gyroangle, motorspeed, power);
     if (abs(power) < 100)
       tMotorPosOK = clock();
     if (power > 100)

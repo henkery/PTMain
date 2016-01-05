@@ -59,7 +59,6 @@ void *sns_sensor_loop(void* vd_data)
                 speed = motorspeed*-1;
                 //motors_reverse(speed);
             }
-            printf("MOTORS SET AT %d\n", motorspeed);
             /*if (!data->selectbuf)
             {
                 data->selectbuf =1;
