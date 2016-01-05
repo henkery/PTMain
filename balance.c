@@ -11,11 +11,14 @@ void bal_balance(float* gyroangles, int motorspeed, int* newmotorspeed, int* gyr
 {
   float gyroangle = *gyroangles;
   int gyrospeed = *gyrospeeds;
-  gyrospeed += 21.8;
+  //gyrospeed -= 11.3;
+  gyrospeed += 100;
 
-  if(gyroangle >= 1.1 || gyroangle <= -1.1){
+  if(gyroangle >= 0.4 || gyroangle <= -0.4){
     return;
   }
+  printf("NORMALE ANGLE door: %f\n", gyroangle);
+
 
   gyroangle = gyroangle * (180.0 / M_PI);
 
@@ -23,8 +26,8 @@ void bal_balance(float* gyroangles, int motorspeed, int* newmotorspeed, int* gyr
   clock_t tMotorPosOK;
 
     tMotorPosOK = clock();
-    power = 0.3 * gyrospeed + 5.3 * gyroangle + 0.1 * motorspeed; // power = (gyroSpeed + 8.0 * gyroAngle)/0.8 + 0.05 * motorPos + 0.1 * motorSpeed; removed motorspos
-      printf("gyrospeed: %d gyroangle: %f motorspeed: %d power: %d\n", gyrospeed, gyroangle, motorspeed, power);
+    power = 0.2 * gyrospeed + 5.3 * gyroangle + 0.1 * motorspeed; // power = (gyroSpeed + 8.0 * gyroAngle)/0.8 + 0.05 * motorPos + 0.1 * motorSpeed; removed motorspos
+    printf("gyrospeed: %d \tgyroangle: %f \tmotorspeed: %d \tpower: %d\t\n", gyrospeed, gyroangle, motorspeed, power);
     if (abs(power) < 100)
       tMotorPosOK = clock();
     if (power > 100)
