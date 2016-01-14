@@ -46,18 +46,18 @@ void *sns_sensor_loop(void* vd_data)
         else
         {
             mpu_calculate_angles_2();
-            //printf("%f, %f, %f,\n", dmpEuler[0], dmpEuler[1], dmpEuler[2]);
-            float* s = &dmpEuler[0];
+            float* s = &dmpEuler[1];
             bal_balance(s, motorspeed, &motorspeed, &rawaccel);
             uint8_t speed = 0;
             data->buf_speed_1 = motorspeed;
-            if (motorspeed>=0) {
+            //motors_forward(100);
+           if (motorspeed>=0) {
                 speed = motorspeed;
-                //motors_forward(speed);
+                motors_forward(speed);
             }
             else {
                 speed = motorspeed*-1;
-                //motors_reverse(speed);
+                motors_reverse(speed);
             }
             /*if (!data->selectbuf)
             {

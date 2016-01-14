@@ -2,6 +2,8 @@
 #define MPU_H
 
 float dmpEuler[3];
+long rawQuat[4];
+float dmpQuat[4];
 int rawaccel;
 
 
