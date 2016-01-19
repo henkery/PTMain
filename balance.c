@@ -23,7 +23,7 @@ void bal_balance(float* gyroangles, int motorspeed, int* newmotorspeed, int* gyr
 
   gyroangle = gyroangle * (180.0 / M_PI);
 
-  gyroangle += 5.4;
+  gyroangle += 5.2;
 
   float verschil = gyroangleprev-gyroangle;
 
@@ -42,8 +42,9 @@ void bal_balance(float* gyroangles, int motorspeed, int* newmotorspeed, int* gyr
   int power;
   clock_t tMotorPosOK;
     tMotorPosOK = clock();
-    power = 2.70 * gyroangle + 0.25 * motorspeed; // power = (gyroSpeed + 8.0 * gyroAngle)/0.8 + 0.05 * motorPos + 0.1 * motorSpeed; removed motorspos
-    //printf("gyrospeed: %d \tgyroangle: %f \tmotorspeed: %d \tpower: %d\t\n", gyrospeed, gyroangle, motorspeed, power);
+    power = 2.62 * gyroangle + 0.230 * motorspeed;// power = (gyroSpeed + 8.0 * gyroAngle)/0.8 + 0.05 * motorPos + 0.1 * motorSpeed; removed motorspos
+    //power = (2.65 * gyroangle - 2) + 0.103 * motorspeed;
+    printf("gyrospeed: %d \tgyroangle: %f \tmotorspeed: %d \tpower: %d\t\n", gyrospeed, gyroangle, motorspeed, power);
     if (abs(power) < 100)
       tMotorPosOK = clock();
     if (power > 100)
