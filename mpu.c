@@ -8,45 +8,24 @@
 int mpu_reset_fifo(void){
     unsigned char data;
 
-    //if (!(chip_cfg.sensors))
-    //return -1;
-
     data = 0;
     i2c_write_address(MPU6050, INT_ENABLE, data, 1);
     i2c_write_address(MPU6050, FIFO_EN, data, 1);
     i2c_write_address(MPU6050, USER_CTRL, data, 1);
-
-    if (1) { //assume truth TODO fix
-        data = 0x04 | 0x08;
-        i2c_write_address(MPU6050, USER_CTRL, data, 1);
-        usleep(50000);
-        data = 0x80 | 0x40;
-        if (1) //chip_cfg.sensors & 0x01
-            data |= 0x20;
-        i2c_write_address(MPU6050, USER_CTRL, data, 1);
-        if (1) //chip_cfg.int_enable
-            data = 0x02;
-        else
-            data = 0;
-        i2c_write_address(MPU6050, INT_ENABLE, data, 1);
+    data = 0x04 | 0x08;
+    i2c_write_address(MPU6050, USER_CTRL, data, 1);
+    usleep(50000);
+    data = 0x80 | 0x40;
+    if (1) //chip_cfg.sensors & 0x01
+        data |= 0x20;
+    i2c_write_address(MPU6050, USER_CTRL, data, 1);
+    if (1) //chip_cfg.int_enable
+        data = 0x02;
+    else
         data = 0;
-        i2c_write_address(MPU6050, FIFO_EN, data, 1);
-    } else {
-        data = 0x04;
-        i2c_write_address(MPU6050, USER_CTRL, data, 1);
-        if (0) //chip_cfg.bypass_mode || !(chip_cfg.sensors & 0x01)
-            data = 0x40;
-        else
-            data = 0x04 | 0x20;
-        i2c_write_address(MPU6050, USER_CTRL, data, 1);
-        usleep(50000);
-        if (1) //chip_cfg.int_enable
-            data = 0x01;
-        else
-            data = 0;
-        i2c_write_address(MPU6050, INT_ENABLE, data, 1);
-        i2c_write_address(MPU6050, FIFO_EN, 1, 1); //chip_cfg.fifo_enable
-    }
+    i2c_write_address(MPU6050, INT_ENABLE, data, 1);
+    data = 0;
+    i2c_write_address(MPU6050, FIFO_EN, data, 1);
     return 0;
 }
 

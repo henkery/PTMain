@@ -62,8 +62,6 @@ int main(int argc, char const *argv[])
 
     //encoder_init();
 	printf("SYSTEM CALLED\n");
-	//motors_forward(50);
-	sns_sensor_run(&th_sensor, &data); //start other threads
 	//mtr_motor_run(&th_motor, &data);
 
 	char connected = 0;
@@ -132,8 +130,10 @@ int main(int argc, char const *argv[])
 					cl = 0;
 					continue;
 				}
-				else
+				else {
+					sns_sensor_run(&th_sensor, &data);
 					connected = 1;
+				}
 			}
 			else {
 				close(cl); //first byte was not a handshake, drop connection
