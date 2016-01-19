@@ -10,6 +10,7 @@
 #include "dmp.h"
 #include "mpu.h"
 #include "motors.h"
+#include <fcntl.h>
 
 int run;
 signed char gyro_orientation[9] = { 1, 0, 0,
@@ -80,15 +81,21 @@ void *sns_sensor_loop(void* vd_data)
     return 0;
 }
 
-/*int psu_read_pwrlevel() {
-    int AIN5 = open("/sys/bus/iio/devices/iio\\:device0/in_voltage5_raw", O_RDONLY);
-    int AIN6 = open("/sys/bus/iio/devices/iio\\:device0/in_voltage6_raw", O_RDONLY);
+int psu_read_pwrlevel() {
+    int AIN5 = open("/sys/bus/iio/devices/iio\\:device0/in_voltage5_raw", O_RDONLY); //24V
+    //int AIN6 = open("/sys/bus/iio/devices/iio\\:device0/in_voltage6_raw", O_RDONLY); //12V
 
-    
+    int16_t psubits = 0;
+    if (read(AIN5, &psubits, 2) != 2)
+    {
+        close(AIN5);
+        return -1;
+    }
 
+    printf(" lekker hoor %i\n", psubits);
     close(AIN5);
-    close(AIN6);
-}*/
+    //close(AIN6);
+}
 
 int sns_sensor_run(pthread_t *thread, mn_core_data *data) {
     pthread_create(thread, NULL, sns_sensor_loop, data);
