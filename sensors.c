@@ -50,7 +50,7 @@ void *sns_sensor_loop(void* vd_data)
             bal_balance(s, motorspeed, &motorspeed, &rawaccel);
             int rpm[2]; 
             memset(rpm, 0, 8);
-            i2c_read_multiple_addresses(0x50, 0x00, rpm, 8);
+            //i2c_read_multiple_addresses(0x50, 0x00, rpm, 8);
             //printf("RPM: %d\n", rpm[0]);
             uint8_t speed = 0;
             data->buf_speed_1 = motorspeed;
@@ -80,7 +80,7 @@ void *sns_sensor_loop(void* vd_data)
     return 0;
 }
 
-int psu_read_pwrlevel() {
+/*int psu_read_pwrlevel() {
     int AIN5 = open("/sys/bus/iio/devices/iio\\:device0/in_voltage5_raw", O_RDONLY);
     int AIN6 = open("/sys/bus/iio/devices/iio\\:device0/in_voltage6_raw", O_RDONLY);
 
@@ -88,7 +88,7 @@ int psu_read_pwrlevel() {
 
     close(AIN5);
     close(AIN6);
-}
+}*/
 
 int sns_sensor_run(pthread_t *thread, mn_core_data *data) {
     pthread_create(thread, NULL, sns_sensor_loop, data);
