@@ -62,8 +62,6 @@ int main(int argc, char const *argv[])
 
     //encoder_init();
 	printf("SYSTEM CALLED\n");
-
-	 //start other threads
 	//mtr_motor_run(&th_motor, &data);
 
 	char connected = 0;

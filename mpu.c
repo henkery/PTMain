@@ -5,9 +5,6 @@
 #include "mpudefines.h"
 #include "mpu.h"
 
-long rawQuat[4];
-float dmpQuat[4];
-
 int mpu_reset_fifo(void){
     unsigned char data;
 
