@@ -51,7 +51,7 @@ void *sns_sensor_loop(void* vd_data)
             int rpm[2]; 
             memset(rpm, 0, 8);
             i2c_read_multiple_addresses(0x50, 0x00, rpm, 8);
-            printf("RPM: %d\n", rpm[0]);
+            //printf("RPM: %d\n", rpm[0]);
             uint8_t speed = 0;
             data->buf_speed_1 = motorspeed;
             //motors_forward(100);
