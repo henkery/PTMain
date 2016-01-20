@@ -11,11 +11,14 @@
 #include "mpu.h"
 #include "motors.h"
 #include <fcntl.h>
+#include <errno.h>
 
 int run;
 signed char gyro_orientation[9] = { 1, 0, 0,
                                     0, 1, 0,
                                     0, 0, 1};
+int countje = 11800;
+char batt = 80;
 
 void *sns_sensor_loop(void* vd_data)
 {
@@ -49,8 +52,13 @@ void *sns_sensor_loop(void* vd_data)
             mpu_calculate_angles_2();
             float* s = &dmpEuler[1];
             bal_balance(s, motorspeed, &motorspeed, &rawaccel);
-            int rpm[2]; 
-            memset(rpm, 0, 8);
+            countje++;
+            if(countje == 12000){ 
+                batt = batt - 1;
+                data->batstat = batt;
+                //psu_read_pwrlevel(&data->batstat);
+                countje = 0;
+            }
             //i2c_read_multiple_addresses(0x50, 0x00, rpm, 8);
             //printf("RPM: %d\n", rpm[0]);
             uint8_t speed = 0;
@@ -81,19 +89,25 @@ void *sns_sensor_loop(void* vd_data)
     return 0;
 }
 
-int psu_read_pwrlevel() {
-    int AIN5 = open("/sys/bus/iio/devices/iio\\:device0/in_voltage5_raw", O_RDONLY); //24V
-    //int AIN6 = open("/sys/bus/iio/devices/iio\\:device0/in_voltage6_raw", O_RDONLY); //12V
-
-    int16_t psubits = 0;
-    if (read(AIN5, &psubits, 2) != 2)
+int psu_read_pwrlevel(int* batstat) {
+    //int AIN5 = open("/sys/bus/iio/devices/iio:device0/in_voltage5_raw", O_RDONLY); //24V
+    int AIN6 = open("/sys/bus/iio/devices/iio:device0/in_voltage6_raw", O_RDONLY | O_NONBLOCK); //12V
+    if (AIN6 == -1)
+        return -1;
+    char cool[5];
+    int readvalue = read(AIN6, cool, 4);
+    cool[4] = 0;
+    if (readvalue != 4)
     {
-        close(AIN5);
+        //printf("LOL: %d\n", readvalue);
+        close(AIN6);
         return -1;
     }
-
-    printf(" lekker hoor %i\n", psubits);
-    close(AIN5);
+    float rawbat = atoi(cool);
+    *batstat = (((rawbat*0.006743)-11.76)/0.176);
+    printf("batval %d komt voort uit %s\n", *batstat, cool);
+    close(AIN6);
+    return 1;
     //close(AIN6);
 }
 

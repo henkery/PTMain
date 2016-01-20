@@ -9,6 +9,7 @@ struct st_core_data
 	int buf_speed_1;
 	float buf_angle_1;
 	float buf_angle_2;
+	int batstat;
 };
 
 typedef struct st_core_data mn_core_data ;

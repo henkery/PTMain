@@ -89,7 +89,7 @@ int main(int argc, char const *argv[])
 					else {
 						char buff[8];
 						int c = data.buf_speed_1;
-						int d = 44;
+						int d = data.batstat;
 						memcpy(buff, &c, 4);
 						memcpy(buff+4, &d, 4);
 						n = write(cl, &buff, 8);
